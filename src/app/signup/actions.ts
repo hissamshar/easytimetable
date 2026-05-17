@@ -6,6 +6,12 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import bcrypt from 'bcryptjs';
 
+import dns from 'dns';
+
+// Force Node.js to prefer IPv4 over IPv6
+// This fixes the 'ENETUNREACH' error on Railway when it tries to connect to Gmail's IPv6 address
+dns.setDefaultResultOrder('ipv4first');
+
 export async function sendOTP(formData: FormData) {
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
