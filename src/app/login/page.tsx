@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { loginWithEmail } from './actions';
 
 export default function LoginPage() {
@@ -64,7 +65,14 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-[11px] text-text-subdued">
+        <div className="mt-6 text-[13px] text-text-subdued">
+          Don't have an account?{' '}
+          <Link href="/signup" className="text-primary font-semibold hover:underline">
+            Sign Up
+          </Link>
+        </div>
+        
+        <p className="mt-4 text-[11px] text-text-subdued border-t border-border pt-4">
           Demo: <strong className="text-text-muted">p240529@pwr.nu.edu.pk</strong>
         </p>
       </div>
