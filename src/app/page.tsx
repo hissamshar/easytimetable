@@ -105,7 +105,7 @@ export default async function Home() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-[24px] md:text-[28px] font-bold font-heading">
-              Welcome back, {studentName.split(' ').pop()}!
+              Welcome back, {studentName.split(' ')[0]}!
             </h1>
             <p className="text-white/80 text-[14px] mt-1">
               {todayName === 'Fri' || todayName === 'Sat' || todayName === 'Sun' 

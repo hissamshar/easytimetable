@@ -144,7 +144,7 @@ export function TopAppBar() {
             {user?.name?.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'ST'}
           </div>
           <div className="text-right">
-            <p className="text-[12px] font-semibold text-text-dark leading-tight">{user?.name || 'Student'}</p>
+            <p className="text-[12px] font-semibold text-text-dark leading-tight">{user?.name ? user.name.split(' ')[0] : 'Student'}</p>
             <p className="text-[10px] text-text-muted leading-tight">{user?.roll || ''}</p>
           </div>
         </div>

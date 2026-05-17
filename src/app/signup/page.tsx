@@ -143,22 +143,72 @@ export default function SignupPage() {
         {step === 2 && (
           <form onSubmit={handleVerifyOTP} className="space-y-4 text-left">
             <div>
-              <label htmlFor="otp" className="block text-[12px] font-semibold text-text-slate mb-1.5 ml-0.5">Verification Code</label>
-              <input
-                type="text"
-                id="otp"
-                name="otp"
-                placeholder="6-digit code"
-                required
-                maxLength={6}
-                pattern="\d{6}"
-                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[18px] text-center tracking-widest text-text-primary placeholder-text-subdued focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-              />
+              <label className="block text-[12px] font-semibold text-text-slate mb-3 text-center">Enter the 6-digit code</label>
+              <div className="flex gap-2 justify-center mb-6">
+                {[0, 1, 2, 3, 4, 5].map((index) => (
+                  <input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    required
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (!/^[0-9]$/.test(value)) {
+                        e.target.value = '';
+                        return;
+                      }
+                      if (value !== '' && index < 5) {
+                        const nextInput = document.getElementById(`otp-${index + 1}`) as HTMLInputElement;
+                        if (nextInput) {
+                          nextInput.focus();
+                          nextInput.select();
+                        }
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Backspace') {
+                        const target = e.target as HTMLInputElement;
+                        if (target.value === '' && index > 0) {
+                          const prevInput = document.getElementById(`otp-${index - 1}`) as HTMLInputElement;
+                          if (prevInput) {
+                            prevInput.focus();
+                            prevInput.select();
+                          }
+                        }
+                      }
+                    }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pasteData = e.clipboardData.getData('text/plain').slice(0, 6).replace(/[^0-9]/g, '');
+                      if (pasteData) {
+                        pasteData.split('').forEach((char, i) => {
+                          const input = document.getElementById(`otp-${i}`) as HTMLInputElement;
+                          if (input) {
+                            input.value = char;
+                            if (i === pasteData.length - 1 && i < 5) {
+                              const next = document.getElementById(`otp-${i + 1}`) as HTMLInputElement;
+                              if (next) next.focus();
+                            }
+                          }
+                        });
+                      }
+                    }}
+                    className="w-11 h-12 bg-bg-slate border border-border rounded-xl text-center text-[20px] font-bold text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary focus:bg-bg-white transition-all shadow-sm"
+                  />
+                ))}
+              </div>
+              <input type="hidden" name="otp" id="hidden-otp" />
             </div>
             
             <button
               type="submit"
               disabled={loading}
+              onClick={() => {
+                const otpValues = [0, 1, 2, 3, 4, 5].map(i => (document.getElementById(`otp-${i}`) as HTMLInputElement)?.value || '').join('');
+                (document.getElementById('hidden-otp') as HTMLInputElement).value = otpValues;
+              }}
               className="w-full bg-primary text-white font-semibold py-3 rounded-xl hover:bg-primary-hover transition-all shadow-sm disabled:opacity-70 flex justify-center items-center text-[14px] mt-2"
             >
               {loading ? (
