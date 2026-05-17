@@ -8,11 +8,11 @@ import bcrypt from 'bcryptjs';
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false, // upgrade later with STARTTLS
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: (process.env.SMTP_USER || '').replace(/['"]/g, '').trim(),
+    pass: (process.env.SMTP_PASS || '').replace(/['"]/g, '').trim(),
   },
 });
 
@@ -86,9 +86,9 @@ export async function sendOTP(formData: FormData) {
     });
 
     return { success: true, email };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error sending OTP:', error);
-    return { error: 'Failed to send verification email. Please check server SMTP configuration.' };
+    return { error: `SMTP Error: ${error.message || 'Failed to send email'}` };
   }
 }
 
