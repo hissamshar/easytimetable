@@ -40,16 +40,29 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="text-left">
-            <label htmlFor="email" className="block text-[12px] font-semibold text-text-slate mb-1.5 ml-0.5">Academic Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              placeholder="e.g. p240529@pwr.nu.edu.pk"
-              required
-              className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-            />
+          <div className="text-left space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-[12px] font-semibold text-text-slate mb-1.5 ml-0.5">Academic Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="e.g. p240529@pwr.nu.edu.pk"
+                required
+                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-[12px] font-semibold text-text-slate mb-1.5 ml-0.5">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="••••••••"
+                required
+                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              />
+            </div>
           </div>
           
           <button

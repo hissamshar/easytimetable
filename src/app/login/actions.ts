@@ -4,10 +4,13 @@ import pool from '@/lib/db'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
+import bcrypt from 'bcryptjs'
+
 export async function loginWithEmail(formData: FormData) {
   const email = formData.get('email') as string
-  if (!email) {
-    return { error: 'Email is required' }
+  const password = formData.get('password') as string
+  if (!email || !password) {
+    return { error: 'Email and password are required' }
   }
 
   // Extract the part before @
@@ -38,6 +41,15 @@ export async function loginWithEmail(formData: FormData) {
     }
 
     const student = res.rows[0]
+
+    if (!student.password_hash) {
+      return { error: 'Your account has not been set up. Please sign up first.' }
+    }
+
+    const isMatch = await bcrypt.compare(password, student.password_hash)
+    if (!isMatch) {
+      return { error: 'Incorrect password' }
+    }
     
     const sessionData = JSON.stringify({
       id: student.student_id,

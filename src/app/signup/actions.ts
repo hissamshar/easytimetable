@@ -4,6 +4,7 @@ import pool from '@/lib/db';
 import nodemailer from 'nodemailer';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import bcrypt from 'bcryptjs';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -17,8 +18,9 @@ export async function sendOTP(formData: FormData) {
   const name = formData.get('name') as string;
   const email = formData.get('email') as string;
   const program = formData.get('program') as string;
+  const password = formData.get('password') as string;
 
-  if (!name || !email || !program) {
+  if (!name || !email || !program || !password) {
     return { error: 'All fields are required' };
   }
 
@@ -40,16 +42,20 @@ export async function sendOTP(formData: FormData) {
   const rollNumber = `${batch}${letter}-${id}`;
 
   try {
-    // Check if student already exists
-    const existing = await pool.query('SELECT student_id FROM students WHERE UPPER(roll_number) = $1', [rollNumber]);
-    if (existing.rows.length > 0) {
-      return { error: 'An account with this roll number already exists.' };
+    // Check if student exists in the database
+    const existing = await pool.query('SELECT student_id, password_hash FROM students WHERE UPPER(roll_number) = $1', [rollNumber]);
+    if (existing.rows.length === 0) {
+      return { error: 'No student record found with this roll number. Please contact administration.' };
+    }
+    if (existing.rows[0].password_hash) {
+      return { error: 'An account with this roll number has already been set up.' };
     }
 
+    const passwordHash = await bcrypt.hash(password, 10);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    const studentData = { name, email, program, rollNumber, batch_year: parseInt('20' + batch), section: 'Unknown' };
+    const studentData = { name, email, program, rollNumber, password_hash: passwordHash, student_id: existing.rows[0].student_id };
 
     await pool.query(
       `INSERT INTO email_verifications (email, otp, expires_at, student_data) 
@@ -103,25 +109,22 @@ export async function verifyOTPAndCreateUser(email: string, otp: string) {
 
     const data = verification.student_data;
 
-    const insertRes = await pool.query(
-      `INSERT INTO students (roll_number, name, program, batch_year, section) 
-       VALUES ($1, $2, $3, $4, $5) RETURNING student_id`,
-      [data.rollNumber, data.name, data.program, data.batch_year, data.section]
+    await pool.query(
+      `UPDATE students 
+       SET name = $1, program = $2, password_hash = $3 
+       WHERE student_id = $4`,
+      [data.name, data.program, data.password_hash, data.student_id]
     );
-
-    const studentId = insertRes.rows[0].student_id;
 
     // Clean up verification table
     await pool.query('DELETE FROM email_verifications WHERE email = $1', [email]);
 
     // Create session
     const sessionData = JSON.stringify({
-      id: studentId,
+      id: data.student_id,
       roll: data.rollNumber,
       name: data.name,
       program: data.program,
-      batch: data.batch_year,
-      section: data.section,
     });
     
     const cookieStore = await cookies();
@@ -145,7 +148,7 @@ export async function verifyOTPAndCreateUser(email: string, otp: string) {
 
   } catch (error) {
     console.error('Verification error:', error);
-    return { error: 'An error occurred while creating the account.' };
+    return { error: 'An error occurred while setting up the account.' };
   }
 
   redirect('/');
