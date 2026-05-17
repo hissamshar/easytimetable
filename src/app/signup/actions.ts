@@ -6,17 +6,17 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import bcrypt from 'bcryptjs';
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // upgrade later with STARTTLS
-  auth: {
-    user: (process.env.SMTP_USER || '').replace(/['"]/g, '').trim(),
-    pass: (process.env.SMTP_PASS || '').replace(/['"]/g, '').trim(),
-  },
-});
-
 export async function sendOTP(formData: FormData) {
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // upgrade later with STARTTLS
+    auth: {
+      user: (process.env.SMTP_USER || '').replace(/['"]/g, '').trim(),
+      pass: (process.env.SMTP_PASS || '').replace(/['"]/g, '').trim(),
+    },
+  });
+
   const name = formData.get('name') as string;
   const email = formData.get('email') as string;
   const program = formData.get('program') as string;
