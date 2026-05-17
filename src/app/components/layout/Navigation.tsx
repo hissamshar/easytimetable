@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 function useAuth() {
   const [user, setUser] = React.useState<{ name: string; roll: string } | null>(null);
@@ -20,6 +20,7 @@ function useAuth() {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const user = useAuth();
   
   if (pathname === '/login' || pathname === '/timer') return null;
@@ -42,7 +43,7 @@ export function Sidebar() {
     <nav className="bg-sidebar-bg text-white h-screen left-0 w-[68px] hidden md:flex flex-col items-center py-4 sticky top-0 z-40 shrink-0">
       {/* Logo */}
       <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mb-6">
-        <span className="material-symbols-outlined text-white text-[22px]">school</span>
+        <span className="material-symbols-outlined text-white text-[22px]" aria-hidden="true">school</span>
       </div>
 
       {/* Nav Icons */}
@@ -53,15 +54,16 @@ export function Sidebar() {
             <Link 
               key={item.href} 
               href={item.href}
-              title={item.label}
-              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 group relative ${
+              aria-label={item.label}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors duration-200 group relative ${
                 isActive 
                   ? 'bg-sidebar-active text-sidebar-text-active' 
                   : 'text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-text-active'
               }`}
             >
               <span 
-                className="material-symbols-outlined text-[22px]" 
+                className="material-symbols-outlined text-[22px]"
+                aria-hidden="true"
                 style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
               >
                 {item.icon}
@@ -83,12 +85,13 @@ export function Sidebar() {
         <button
           onClick={async () => {
             await fetch('/api/logout', { method: 'POST' });
-            window.location.href = '/login';
+            router.push('/login');
           }}
+          aria-label="Logout"
           title="Logout"
           className="w-9 h-9 rounded-xl flex items-center justify-center text-sidebar-text hover:bg-sidebar-hover hover:text-red-400 transition-colors"
         >
-          <span className="material-symbols-outlined text-[20px]">logout</span>
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">logout</span>
         </button>
       </div>
     </nav>
@@ -115,7 +118,7 @@ export function TopAppBar() {
     <header className="bg-bg-white border-b border-border sticky top-0 flex justify-between items-center w-full px-4 md:px-6 py-3 z-30">
       <div className="flex items-center gap-3">
         <div className="md:hidden w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-          <span className="material-symbols-outlined text-white text-[18px]">school</span>
+          <span className="material-symbols-outlined text-white text-[18px]" aria-hidden="true">school</span>
         </div>
         <div>
           <h1 className="text-[16px] font-bold text-text-dark font-heading">{getPageTitle()}</h1>
@@ -125,18 +128,23 @@ export function TopAppBar() {
       {/* Search */}
       <div className="hidden md:flex flex-1 max-w-md mx-6">
         <div className="relative w-full">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]">search</span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]" aria-hidden="true">search</span>
+          <label htmlFor="global-search" className="sr-only">Search courses, rooms</label>
           <input 
-            className="w-full bg-bg-slate border border-border rounded-lg py-2 pl-9 pr-3 text-[13px] text-text-primary placeholder-text-subdued focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" 
-            placeholder="Search courses, rooms..." 
-            type="text" 
+            id="global-search"
+            className="w-full bg-bg-slate border border-border rounded-lg py-2 pl-9 pr-3 text-[13px] text-text-primary placeholder-text-subdued focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-colors" 
+            placeholder="Search courses, rooms…" 
+            type="text"
+            name="search"
+            autoComplete="off"
+            spellCheck={false}
           />
         </div>
       </div>
 
       <div className="flex items-center gap-2">
-        <Link href="/updates" className="relative p-2 text-text-muted hover:bg-bg-slate transition-colors rounded-lg">
-          <span className="material-symbols-outlined text-[20px]">notifications</span>
+        <Link href="/updates" className="relative p-2 text-text-muted hover:bg-bg-slate transition-colors rounded-lg" aria-label="Notifications">
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">notifications</span>
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red rounded-full border-2 border-bg-white"></span>
         </Link>
         <div className="hidden md:flex items-center gap-2 ml-2 pl-3 border-l border-border">
@@ -167,20 +175,21 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="bg-bg-white/95 backdrop-blur-md md:hidden border-t border-border fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+    <nav className="bg-bg-white/95 backdrop-blur-md md:hidden border-t border-border fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]" style={{ touchAction: 'manipulation' }}>
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         return (
           <Link 
             key={item.href} 
-            href={item.href} 
+            href={item.href}
+            aria-label={item.label}
             className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded-lg transition-colors ${
               isActive 
                 ? 'text-primary' 
                 : 'text-text-muted'
             }`}
           >
-            <span className="material-symbols-outlined text-[22px]" style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>{item.icon}</span>
+            <span className="material-symbols-outlined text-[22px]" aria-hidden="true" style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>{item.icon}</span>
             <span className="text-[10px] font-medium">{item.label}</span>
           </Link>
         );

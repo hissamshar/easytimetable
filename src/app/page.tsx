@@ -94,8 +94,9 @@ export default async function Home() {
 
   const formatTime = (t: string) => {
     const [h, m] = t.split(':');
-    const hour = parseInt(h);
-    return `${hour > 12 ? hour - 12 : hour}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
+    const date = new Date();
+    date.setHours(parseInt(h), parseInt(m), 0);
+    return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).format(date);
   };
 
   return (
@@ -127,37 +128,37 @@ export default async function Home() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '50ms' }}>
         <Card className="flex-row items-center gap-3 !p-4">
           <div className="w-10 h-10 rounded-xl bg-primary-10 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-primary text-[20px]">menu_book</span>
+            <span className="material-symbols-outlined text-primary text-[20px]" aria-hidden="true">menu_book</span>
           </div>
           <div>
-            <p className="text-[22px] font-bold text-text-dark leading-none">{data?.coursesCount || 0}</p>
+            <p className="text-[22px] font-bold text-text-dark leading-none" style={{ fontVariantNumeric: 'tabular-nums' }}>{data?.coursesCount || 0}</p>
             <p className="text-[11px] text-text-muted mt-0.5">Enrolled Courses</p>
           </div>
         </Card>
         <Card className="flex-row items-center gap-3 !p-4">
           <div className="w-10 h-10 rounded-xl bg-orange-light flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-orange text-[20px]">assignment</span>
+            <span className="material-symbols-outlined text-orange text-[20px]" aria-hidden="true">assignment</span>
           </div>
           <div>
-            <p className="text-[22px] font-bold text-text-dark leading-none">{data?.upcomingExams.length || 0}</p>
+            <p className="text-[22px] font-bold text-text-dark leading-none" style={{ fontVariantNumeric: 'tabular-nums' }}>{data?.upcomingExams.length || 0}</p>
             <p className="text-[11px] text-text-muted mt-0.5">Upcoming Exams</p>
           </div>
         </Card>
         <Card className="flex-row items-center gap-3 !p-4">
           <div className="w-10 h-10 rounded-xl bg-green-light flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-green text-[20px]">calendar_view_week</span>
+            <span className="material-symbols-outlined text-green text-[20px]" aria-hidden="true">calendar_view_week</span>
           </div>
           <div>
-            <p className="text-[22px] font-bold text-text-dark leading-none">{data?.todaySchedule.length || 0}</p>
+            <p className="text-[22px] font-bold text-text-dark leading-none" style={{ fontVariantNumeric: 'tabular-nums' }}>{data?.todaySchedule.length || 0}</p>
             <p className="text-[11px] text-text-muted mt-0.5">Classes Today</p>
           </div>
         </Card>
         <Card className="flex-row items-center gap-3 !p-4">
           <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-primary text-[20px]">campaign</span>
+            <span className="material-symbols-outlined text-primary text-[20px]" aria-hidden="true">campaign</span>
           </div>
           <div>
-            <p className="text-[22px] font-bold text-text-dark leading-none">{data?.updates.length || 0}</p>
+            <p className="text-[22px] font-bold text-text-dark leading-none" style={{ fontVariantNumeric: 'tabular-nums' }}>{data?.updates.length || 0}</p>
             <p className="text-[11px] text-text-muted mt-0.5">New Updates</p>
           </div>
         </Card>
@@ -170,7 +171,7 @@ export default async function Home() {
         <Card className="lg:col-span-2">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[20px]">today</span>
+              <span className="material-symbols-outlined text-primary text-[20px]" aria-hidden="true">today</span>
               <h2 className="text-[16px] font-bold text-text-dark font-heading">Today&apos;s Schedule</h2>
               <Badge variant="info">{todayName}</Badge>
             </div>
@@ -190,17 +191,17 @@ export default async function Home() {
               <h3 className="text-[15px] font-bold text-text-dark">{currentClass.course_name}</h3>
               <div className="flex flex-wrap gap-3 mt-2 text-[12px] text-text-muted">
                 <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">location_on</span>
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">location_on</span>
                   {currentClass.room_name || 'TBD'}
                 </span>
                 {currentClass.faculty_name && (
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">person</span>
+                    <span className="material-symbols-outlined text-[14px]" aria-hidden="true">person</span>
                     {currentClass.faculty_name}
                   </span>
                 )}
                 <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">tag</span>
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">tag</span>
                   {currentClass.course_code}
                 </span>
               </div>
@@ -209,7 +210,7 @@ export default async function Home() {
 
           {(!data?.todaySchedule || data.todaySchedule.length === 0) ? (
             <div className="text-center py-10 text-text-muted">
-              <span className="material-symbols-outlined text-[40px] text-text-subdued mb-2 block">weekend</span>
+              <span className="material-symbols-outlined text-[40px] text-text-subdued mb-2 block" aria-hidden="true">weekend</span>
               <p className="text-[14px]">No classes scheduled for today</p>
             </div>
           ) : (
@@ -245,7 +246,7 @@ export default async function Home() {
                       <Badge variant="live" className="shrink-0">Live</Badge>
                     )}
                     {isPast && (
-                      <span className="material-symbols-outlined text-text-subdued text-[18px]">check_circle</span>
+                      <span className="material-symbols-outlined text-text-subdued text-[18px]" aria-hidden="true">check_circle</span>
                     )}
                   </div>
                 );
@@ -260,7 +261,7 @@ export default async function Home() {
           <Card>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-orange text-[20px]">assignment</span>
+                <span className="material-symbols-outlined text-orange text-[20px]" aria-hidden="true">assignment</span>
                 <h2 className="text-[16px] font-bold text-text-dark font-heading">Upcoming Exams</h2>
               </div>
               <Link href="/exams" className="text-[12px] text-primary font-semibold hover:underline">
@@ -269,7 +270,7 @@ export default async function Home() {
             </div>
             {(!data?.upcomingExams || data.upcomingExams.length === 0) ? (
               <div className="text-center py-6 text-text-muted">
-                <span className="material-symbols-outlined text-[32px] text-text-subdued mb-1 block">celebration</span>
+                <span className="material-symbols-outlined text-[32px] text-text-subdued mb-1 block" aria-hidden="true">celebration</span>
                 <p className="text-[13px]">No upcoming exams!</p>
               </div>
             ) : (
@@ -309,7 +310,7 @@ export default async function Home() {
           <Card>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-[20px]">campaign</span>
+                <span className="material-symbols-outlined text-primary text-[20px]" aria-hidden="true">campaign</span>
                 <h2 className="text-[16px] font-bold text-text-dark font-heading">Updates</h2>
               </div>
               <Link href="/updates" className="text-[12px] text-primary font-semibold hover:underline">
@@ -339,7 +340,7 @@ export default async function Home() {
         <Link href="/timetable">
           <Card hoverable className="flex-row items-center gap-3 !p-4">
             <div className="w-10 h-10 rounded-xl bg-primary-10 flex items-center justify-center text-primary shrink-0">
-              <span className="material-symbols-outlined text-[20px]">calendar_view_week</span>
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">calendar_view_week</span>
             </div>
             <div>
               <h3 className="text-[14px] font-bold text-text-dark">Full Timetable</h3>
@@ -350,7 +351,7 @@ export default async function Home() {
         <Link href="/exams">
           <Card hoverable className="flex-row items-center gap-3 !p-4">
             <div className="w-10 h-10 rounded-xl bg-orange-light flex items-center justify-center text-orange shrink-0">
-              <span className="material-symbols-outlined text-[20px]">assignment</span>
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">assignment</span>
             </div>
             <div>
               <h3 className="text-[14px] font-bold text-text-dark">Exam Datesheet</h3>
@@ -361,7 +362,7 @@ export default async function Home() {
         <Link href="/calendar">
           <Card hoverable className="flex-row items-center gap-3 !p-4">
             <div className="w-10 h-10 rounded-xl bg-green-light flex items-center justify-center text-green shrink-0">
-              <span className="material-symbols-outlined text-[20px]">event</span>
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">event</span>
             </div>
             <div>
               <h3 className="text-[14px] font-bold text-text-dark">Academic Calendar</h3>

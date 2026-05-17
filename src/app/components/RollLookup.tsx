@@ -29,7 +29,7 @@ export function RollLookup({ targetPage }: { targetPage: 'timetable' | 'exams' }
         title="Format: 23I-0001 or 23i-0001"
       />
       <Button type="submit" variant="primary" className="whitespace-nowrap">
-        <span className="material-symbols-outlined mr-2 text-[18px]">search</span>
+        <span className="material-symbols-outlined mr-2 text-[18px]" aria-hidden="true">search</span>
         Lookup {targetPage === 'timetable' ? 'Schedule' : 'Exams'}
       </Button>
     </form>

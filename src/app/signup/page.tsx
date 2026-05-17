@@ -51,7 +51,7 @@ export default function SignupPage() {
       <div className="bg-bg-white w-full rounded-2xl shadow-lg border border-border p-8 text-center">
         {/* Logo */}
         <div className="w-14 h-14 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md">
-          <span className="material-symbols-outlined text-white text-[28px]">
+          <span className="material-symbols-outlined text-white text-[28px]" aria-hidden="true">
             {step === 1 ? 'person_add' : 'mark_email_read'}
           </span>
         </div>
@@ -66,7 +66,7 @@ export default function SignupPage() {
         </p>
 
         {error && (
-          <div className="mb-5 p-3 bg-red-light text-red rounded-lg text-[13px] border border-red/20 text-left">
+          <div role="alert" className="mb-5 p-3 bg-red-light text-red rounded-lg text-[13px] border border-red/20 text-left">
             {error}
           </div>
         )}
@@ -79,9 +79,10 @@ export default function SignupPage() {
                 type="text"
                 id="name"
                 name="name"
-                placeholder="e.g. Hisam Shar"
+                placeholder="e.g. Hisam Shar…"
                 required
-                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                autoComplete="name"
+                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-colors"
               />
             </div>
 
@@ -91,9 +92,11 @@ export default function SignupPage() {
                 type="email"
                 id="email"
                 name="email"
-                placeholder="e.g. p240529@pwr.nu.edu.pk"
+                placeholder="e.g. p240529@pwr.nu.edu.pk…"
                 required
-                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                autoComplete="email"
+                spellCheck={false}
+                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-colors"
               />
             </div>
 
@@ -106,7 +109,8 @@ export default function SignupPage() {
                 placeholder="••••••••"
                 required
                 minLength={6}
-                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                autoComplete="new-password"
+                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-colors"
               />
             </div>
 
@@ -116,7 +120,7 @@ export default function SignupPage() {
                 id="program"
                 name="program"
                 required
-                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all appearance-none"
+                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-colors appearance-none"
               >
                 <option value="BS(CS)">BS(CS) - Computer Science</option>
                 <option value="BS(SE)">BS(SE) - Software Engineering</option>
@@ -129,7 +133,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary text-white font-semibold py-3 rounded-xl hover:bg-primary-hover transition-all shadow-sm disabled:opacity-70 flex justify-center items-center text-[14px] mt-2"
+              className="w-full bg-primary text-white font-semibold py-3 rounded-xl hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-70 flex justify-center items-center text-[14px] mt-2"
             >
               {loading ? (
                 <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
@@ -142,8 +146,8 @@ export default function SignupPage() {
 
         {step === 2 && (
           <form onSubmit={handleVerifyOTP} className="space-y-4 text-left">
-            <div>
-              <label className="block text-[12px] font-semibold text-text-slate mb-3 text-center">Enter the 6-digit code</label>
+            <fieldset>
+              <legend className="block text-[12px] font-semibold text-text-slate mb-3 text-center w-full">Enter the 6-digit code</legend>
               <div className="flex gap-2 justify-center mb-6">
                 {[0, 1, 2, 3, 4, 5].map((index) => (
                   <input
@@ -153,6 +157,9 @@ export default function SignupPage() {
                     inputMode="numeric"
                     maxLength={1}
                     required
+                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                    aria-label={`Digit ${index + 1}`}
+                    spellCheck={false}
                     onChange={(e) => {
                       const value = e.target.value;
                       if (!/^[0-9]$/.test(value)) {
@@ -180,9 +187,9 @@ export default function SignupPage() {
                       }
                     }}
                     onPaste={(e) => {
-                      e.preventDefault();
                       const pasteData = e.clipboardData.getData('text/plain').slice(0, 6).replace(/[^0-9]/g, '');
-                      if (pasteData) {
+                      if (pasteData.length > 1) {
+                        e.preventDefault();
                         pasteData.split('').forEach((char, i) => {
                           const input = document.getElementById(`otp-${i}`) as HTMLInputElement;
                           if (input) {
@@ -195,12 +202,12 @@ export default function SignupPage() {
                         });
                       }
                     }}
-                    className="w-11 h-12 bg-bg-slate border border-border rounded-xl text-center text-[20px] font-bold text-text-dark focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary focus:bg-bg-white transition-all shadow-sm"
+                    className="w-11 h-12 bg-bg-slate border border-border rounded-xl text-center text-[20px] font-bold text-text-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary focus:bg-bg-white transition-colors shadow-sm"
                   />
                 ))}
               </div>
               <input type="hidden" name="otp" id="hidden-otp" />
-            </div>
+            </fieldset>
             
             <button
               type="submit"
@@ -209,7 +216,7 @@ export default function SignupPage() {
                 const otpValues = [0, 1, 2, 3, 4, 5].map(i => (document.getElementById(`otp-${i}`) as HTMLInputElement)?.value || '').join('');
                 (document.getElementById('hidden-otp') as HTMLInputElement).value = otpValues;
               }}
-              className="w-full bg-primary text-white font-semibold py-3 rounded-xl hover:bg-primary-hover transition-all shadow-sm disabled:opacity-70 flex justify-center items-center text-[14px] mt-2"
+              className="w-full bg-primary text-white font-semibold py-3 rounded-xl hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-70 flex justify-center items-center text-[14px] mt-2"
             >
               {loading ? (
                 <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>

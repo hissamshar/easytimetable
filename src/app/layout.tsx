@@ -27,11 +27,13 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${jakarta.variable} h-full antialiased`}
+      style={{ colorScheme: 'light' }}
     >
       <head>
+        <link rel="preload" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" as="style" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
-      <body className="bg-bg-app text-text-primary flex min-h-screen font-primary">
+      <body className="bg-bg-app text-text-primary flex min-h-screen font-primary overflow-x-hidden">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-primary focus:text-white">Skip to content</a>
         
         <Sidebar />

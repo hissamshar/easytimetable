@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Link from 'next/link';
 
 type SessionMode = 'focus' | 'short_break' | 'long_break';
 
@@ -173,7 +174,7 @@ export default function TimerPage() {
         {/* Mode Tabs */}
         <div className="flex bg-black/40 backdrop-blur-md rounded-full p-1 mb-5 w-fit">
           <button
-            className={`px-4 py-1.5 rounded-full text-[12px] font-semibold transition-all ${
+            className={`px-4 py-1.5 rounded-full text-[12px] font-semibold transition-colors ${
               mode !== 'focus' || true ? 'text-white' : ''
             } ${isRunning ? 'opacity-60 pointer-events-none' : ''}`}
             style={{ background: 'rgba(255,255,255,0.15)' }}
@@ -181,7 +182,7 @@ export default function TimerPage() {
             Pomodoro
           </button>
           <button
-            className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white/60 hover:text-white transition-all"
+            className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white/60 hover:text-white transition-colors"
             onClick={resetTimer}
           >
             Timer
@@ -194,14 +195,14 @@ export default function TimerPage() {
             <div
               key={key}
               onClick={() => !isRunning && switchMode(key)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left cursor-pointer ${
+              className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors text-left cursor-pointer ${
                 mode === key 
                   ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-lg' 
                   : 'bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10'
               } ${isRunning && mode !== key ? 'opacity-40 pointer-events-none' : ''}`}
             >
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white`} style={{ backgroundColor: m.color }}>
-                <span className="material-symbols-outlined text-[16px]">{m.icon}</span>
+                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">{m.icon}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-bold text-white leading-tight">{m.label}</p>
@@ -212,7 +213,7 @@ export default function TimerPage() {
                 onClick={(e) => { e.stopPropagation(); }}
                 title="Edit duration"
               >
-                <span className="material-symbols-outlined text-[14px]">settings</span>
+                <span className="material-symbols-outlined text-[14px]" aria-hidden="true">settings</span>
               </button>
             </div>
           ))}
@@ -224,14 +225,14 @@ export default function TimerPage() {
           {selectedCourse ? (
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-                <span className="material-symbols-outlined text-white text-[14px]">menu_book</span>
+                <span className="material-symbols-outlined text-white text-[14px]" aria-hidden="true">menu_book</span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[12px] font-semibold text-white truncate">{selectedCourse.course_name}</p>
                 <p className="text-[10px] text-white/50">{selectedCourse.course_code}</p>
               </div>
               <button onClick={() => setSelectedCourse(null)} className="text-white/40 hover:text-white/80">
-                <span className="material-symbols-outlined text-[14px]">close</span>
+                <span className="material-symbols-outlined text-[14px]" aria-hidden="true">close</span>
               </button>
             </div>
           ) : (
@@ -239,7 +240,7 @@ export default function TimerPage() {
               onClick={() => setShowCourseModal(true)}
               className="text-[12px] text-white/70 hover:text-white transition-colors flex items-center gap-1"
             >
-              <span className="material-symbols-outlined text-[14px]">add</span>
+              <span className="material-symbols-outlined text-[14px]" aria-hidden="true">add</span>
               Link a course
             </button>
           )}
@@ -289,7 +290,7 @@ export default function TimerPage() {
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
-                className="transition-all duration-1000 ease-linear"
+                className="transition-[stroke-dashoffset] duration-1000 ease-linear"
                 style={{ filter: `drop-shadow(0 0 8px ${MODES[mode].color}60)` }}
               />
             </svg>
@@ -306,22 +307,23 @@ export default function TimerPage() {
           <div className="flex items-center gap-4 mt-8">
             <button
               onClick={resetTimer}
-              className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:bg-white/20 hover:text-white transition-all"
+              className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:bg-white/20 hover:text-white transition-colors"
+              aria-label="Reset timer"
               title="Reset"
             >
-              <span className="material-symbols-outlined text-[20px]">replay</span>
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">replay</span>
             </button>
 
             <button
               onClick={toggleTimer}
-              className="px-8 py-3 rounded-full font-bold text-[14px] flex items-center gap-2 transition-all shadow-lg"
+              className="px-8 py-3 rounded-full font-bold text-[14px] flex items-center gap-2 transition-colors shadow-lg"
               style={{ 
                 backgroundColor: MODES[mode].color,
                 color: 'white',
                 boxShadow: `0 4px 20px ${MODES[mode].color}40`
               }}
             >
-              <span className="material-symbols-outlined text-[20px]">
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
                 {isRunning ? 'pause' : 'play_arrow'}
               </span>
               {isRunning ? 'Pause' : timeLeft < totalSeconds ? 'Resume' : 'Start Study'}
@@ -349,10 +351,11 @@ export default function TimerPage() {
                 }
                 resetTimer();
               }}
-              className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:bg-white/20 hover:text-white transition-all"
+              className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:bg-white/20 hover:text-white transition-colors"
+              aria-label="Skip session"
               title="Skip / Save partial"
             >
-              <span className="material-symbols-outlined text-[20px]">skip_next</span>
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">skip_next</span>
             </button>
           </div>
 
@@ -361,7 +364,7 @@ export default function TimerPage() {
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
                   i < (completedCount % 4) ? 'bg-white' : 'bg-white/20'
                 }`}
               />
@@ -371,13 +374,13 @@ export default function TimerPage() {
         </div>
 
         {/* Back button */}
-        <a
+        <Link
           href="/"
           className="mt-6 flex items-center gap-1.5 text-white/60 hover:text-white text-[13px] font-medium transition-colors"
         >
-          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+          <span className="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_back</span>
           Back to Dashboard
-        </a>
+        </Link>
       </div>
 
       {/* Mobile bottom stats */}
@@ -404,18 +407,18 @@ export default function TimerPage() {
 
       {/* Course Link Modal */}
       {showCourseModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowCourseModal(false)}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" style={{ overscrollBehavior: 'contain' }} role="dialog" aria-modal="true" aria-label="Link course" onClick={() => setShowCourseModal(false)}>
           <div className="bg-white rounded-2xl shadow-2xl border border-border p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <span className="material-symbols-outlined text-white text-[20px]">menu_book</span>
+                <span className="material-symbols-outlined text-white text-[20px]" aria-hidden="true">menu_book</span>
               </div>
               <div>
                 <h3 className="text-[16px] font-bold text-text-dark font-heading">Link to a Course</h3>
                 <p className="text-[12px] text-text-muted">Connect this session to keep your stats organized by subject.</p>
               </div>
-              <button onClick={() => setShowCourseModal(false)} className="ml-auto text-text-muted hover:text-text-dark">
-                <span className="material-symbols-outlined">close</span>
+              <button onClick={() => setShowCourseModal(false)} className="ml-auto text-text-muted hover:text-text-dark" aria-label="Close">
+                <span className="material-symbols-outlined" aria-hidden="true">close</span>
               </button>
             </div>
 
@@ -438,10 +441,10 @@ export default function TimerPage() {
                       setSelectedCourse(c);
                       setShowCourseModal(false);
                     }}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:bg-bg-slate hover:border-primary/30 transition-all text-left"
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:bg-bg-slate hover:border-primary/30 transition-colors text-left"
                   >
                     <div className="w-8 h-8 rounded-lg bg-primary-10 flex items-center justify-center text-primary">
-                      <span className="material-symbols-outlined text-[16px]">menu_book</span>
+                      <span className="material-symbols-outlined text-[16px]" aria-hidden="true">menu_book</span>
                     </div>
                     <div>
                       <p className="text-[13px] font-semibold text-text-dark">{c.course_name}</p>

@@ -112,7 +112,7 @@ export default function UpdatesPage() {
         <h2 className="text-[16px] font-bold text-text-dark font-heading">All Updates</h2>
         {!showForm && (
           <Button onClick={() => setShowForm(true)} variant="primary" size="sm">
-            <span className="material-symbols-outlined text-[16px]">add</span>
+            <span className="material-symbols-outlined text-[16px]" aria-hidden="true">add</span>
             New Update
           </Button>
         )}
@@ -136,7 +136,7 @@ export default function UpdatesPage() {
                 id="title"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="Enter title"
+                placeholder="Enter title…"
                 required
               />
             </div>
@@ -144,10 +144,10 @@ export default function UpdatesPage() {
               <label htmlFor="content" className="block text-[12px] font-semibold text-text-slate mb-1">Content</label>
               <textarea
                 id="content"
-                className="w-full bg-bg-white border border-border rounded-lg py-2.5 px-3 text-[13px] text-text-primary placeholder-text-subdued focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[100px] resize-y"
+                className="w-full bg-bg-white border border-border rounded-lg py-2.5 px-3 text-[13px] text-text-primary placeholder-text-subdued focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-colors min-h-[100px] resize-y"
                 value={formContent}
                 onChange={(e) => setFormContent(e.target.value)}
-                placeholder="Enter update content"
+                placeholder="Enter update content…"
                 required
               />
             </div>
@@ -155,7 +155,7 @@ export default function UpdatesPage() {
               <label htmlFor="type" className="block text-[12px] font-semibold text-text-slate mb-1">Category</label>
               <select
                 id="type"
-                className="w-full bg-bg-white border border-border rounded-lg py-2.5 px-3 text-[13px] text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none"
+                className="w-full bg-bg-white border border-border rounded-lg py-2.5 px-3 text-[13px] text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary appearance-none"
                 value={formType}
                 onChange={(e) => setFormType(e.target.value)}
               >
@@ -168,7 +168,7 @@ export default function UpdatesPage() {
             <div className="flex gap-3 justify-end pt-2">
               <Button type="button" variant="ghost" onClick={resetForm}>Cancel</Button>
               <Button type="submit" variant="primary" disabled={submitting}>
-                {submitting ? 'Saving...' : editingId ? 'Save Changes' : 'Publish'}
+                {submitting ? 'Saving…' : editingId ? 'Save Changes' : 'Publish'}
               </Button>
             </div>
           </form>
@@ -189,7 +189,7 @@ export default function UpdatesPage() {
 
       {!loading && updates.length === 0 && (
         <Card className="text-center py-12 flex flex-col items-center">
-          <span className="material-symbols-outlined text-[48px] text-text-subdued mb-3">notifications_off</span>
+          <span className="material-symbols-outlined text-[48px] text-text-subdued mb-3" aria-hidden="true">notifications_off</span>
           <p className="text-text-muted text-[14px]">No updates yet. Create one to get started!</p>
         </Card>
       )}
@@ -215,11 +215,11 @@ export default function UpdatesPage() {
             <p className="text-text-muted text-[13px] mb-3">{update.message}</p>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={() => handleEdit(update)}>
-                <span className="material-symbols-outlined text-[14px]">edit</span>
+                <span className="material-symbols-outlined text-[14px]" aria-hidden="true">edit</span>
                 Edit
               </Button>
               <Button variant="danger" size="sm" onClick={() => handleDelete(update.update_id)}>
-                <span className="material-symbols-outlined text-[14px]">delete</span>
+                <span className="material-symbols-outlined text-[14px]" aria-hidden="true">delete</span>
                 Delete
               </Button>
             </div>

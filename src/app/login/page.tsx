@@ -27,14 +27,14 @@ export default function LoginPage() {
       <div className="bg-bg-white w-full rounded-2xl shadow-lg border border-border p-8 text-center">
         {/* Logo */}
         <div className="w-14 h-14 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md">
-          <span className="material-symbols-outlined text-white text-[28px]">school</span>
+          <span className="material-symbols-outlined text-white text-[28px]" aria-hidden="true">school</span>
         </div>
         
         <h1 className="font-heading text-[26px] font-extrabold text-text-dark mb-1">EasyTimetable</h1>
         <p className="text-text-muted text-[13px] mb-7">Sign in with your academic email</p>
 
         {error && (
-          <div className="mb-5 p-3 bg-red-light text-red rounded-lg text-[13px] border border-red/20 text-left">
+          <div role="alert" className="mb-5 p-3 bg-red-light text-red rounded-lg text-[13px] border border-red/20 text-left">
             {error}
           </div>
         )}
@@ -47,9 +47,11 @@ export default function LoginPage() {
                 type="email"
                 id="email"
                 name="email"
-                placeholder="e.g. p240529@pwr.nu.edu.pk"
+                placeholder="e.g. p240529@pwr.nu.edu.pk…"
                 required
-                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                autoComplete="email"
+                spellCheck={false}
+                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-colors"
               />
             </div>
             <div>
@@ -60,7 +62,8 @@ export default function LoginPage() {
                 name="password"
                 placeholder="••••••••"
                 required
-                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                autoComplete="current-password"
+                className="w-full bg-bg-white border border-border rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder-text-subdued focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-colors"
               />
             </div>
           </div>
@@ -68,7 +71,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-white font-semibold py-3 rounded-xl hover:bg-primary-hover transition-all shadow-sm disabled:opacity-70 flex justify-center items-center text-[14px]"
+            className="w-full bg-primary text-white font-semibold py-3 rounded-xl hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-70 flex justify-center items-center text-[14px]"
           >
             {loading ? (
               <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
@@ -79,7 +82,7 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6 text-[13px] text-text-subdued">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/signup" className="text-primary font-semibold hover:underline">
             Sign Up
           </Link>

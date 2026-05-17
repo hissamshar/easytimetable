@@ -33,8 +33,9 @@ async function getSchedule(studentId: number) {
 
 const formatTime = (t: string) => {
   const [h, m] = t.split(':');
-  const hour = parseInt(h);
-  return `${hour > 12 ? hour - 12 : hour}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
+  const date = new Date();
+  date.setHours(parseInt(h), parseInt(m), 0);
+  return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).format(date);
 };
 
 const dayColors: Record<string, string> = {
@@ -99,7 +100,7 @@ export default async function TimetablePage() {
 
       {schedule.length === 0 ? (
         <Card className="text-center py-12 animate-fade-in-up">
-          <span className="material-symbols-outlined text-[48px] text-text-subdued mb-3 block">calendar_view_week</span>
+          <span className="material-symbols-outlined text-[48px] text-text-subdued mb-3 block" aria-hidden="true">calendar_view_week</span>
           <p className="text-text-muted text-[14px]">No class schedule found.</p>
         </Card>
       ) : (
@@ -127,16 +128,16 @@ export default async function TimetablePage() {
                       <h4 className="text-[14px] font-semibold text-text-dark mt-1 leading-snug">{cls.course_name}</h4>
                       <div className="mt-3 space-y-1.5 text-[12px] text-text-muted">
                         <div className="flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[14px]">schedule</span>
+                          <span className="material-symbols-outlined text-[14px]" aria-hidden="true">schedule</span>
                           {formatTime(cls.start_time)} – {formatTime(cls.end_time)}
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[14px]">location_on</span>
+                          <span className="material-symbols-outlined text-[14px]" aria-hidden="true">location_on</span>
                           {cls.room_name || 'TBD'}
                         </div>
                         {cls.faculty_name && (
                           <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[14px]">person</span>
+                            <span className="material-symbols-outlined text-[14px]" aria-hidden="true">person</span>
                             {cls.faculty_name}
                           </div>
                         )}

@@ -27,8 +27,9 @@ async function getExams(studentId: number) {
 
 const formatTime = (t: string) => {
   const [h, m] = t.split(':');
-  const hour = parseInt(h);
-  return `${hour > 12 ? hour - 12 : hour}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
+  const date = new Date();
+  date.setHours(parseInt(h), parseInt(m), 0);
+  return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).format(date);
 };
 
 export default async function ExamsPage() {
@@ -79,7 +80,7 @@ export default async function ExamsPage() {
 
       {exams.length === 0 ? (
         <Card className="text-center py-12 animate-fade-in-up">
-          <span className="material-symbols-outlined text-[48px] text-text-subdued mb-3 block">assignment</span>
+          <span className="material-symbols-outlined text-[48px] text-text-subdued mb-3 block" aria-hidden="true">assignment</span>
           <p className="text-text-muted text-[14px]">No exams scheduled.</p>
         </Card>
       ) : (
@@ -106,18 +107,18 @@ export default async function ExamsPage() {
                       <h3 className="text-[14px] font-semibold text-text-dark mt-1 leading-snug">{exam.course_name}</h3>
                       <div className="mt-3 space-y-1.5 text-[12px] text-text-muted">
                         <div className="flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                          <span className="material-symbols-outlined text-[14px]" aria-hidden="true">calendar_today</span>
                           {examDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                           <span className="ml-auto text-[11px] font-semibold text-text-slate">
                             {diffDays === 0 ? 'Today!' : diffDays === 1 ? 'Tomorrow' : `${diffDays}d`}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[14px]">schedule</span>
+                          <span className="material-symbols-outlined text-[14px]" aria-hidden="true">schedule</span>
                           {formatTime(exam.start_time)} – {formatTime(exam.end_time)}
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[14px]">location_on</span>
+                          <span className="material-symbols-outlined text-[14px]" aria-hidden="true">location_on</span>
                           {exam.room_name || 'TBD'}
                         </div>
                       </div>
@@ -146,7 +147,7 @@ export default async function ExamsPage() {
                       </div>
                       <h3 className="text-[14px] font-semibold text-text-slate mt-1 leading-snug">{exam.course_name}</h3>
                       <div className="mt-3 text-[12px] text-text-muted flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                        <span className="material-symbols-outlined text-[14px]" aria-hidden="true">calendar_today</span>
                         {examDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                       </div>
                     </Card>

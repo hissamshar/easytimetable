@@ -75,9 +75,12 @@ export default async function AnalyticsPage() {
   const hoursStudied = Math.floor(totalMinutes / 60);
   const totalSessions = parseInt(data?.monthStats?.total_sessions || '0');
 
-  const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-  const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getDay(); // 0 is Sun
+  const now = new Date();
+  const currentMonth = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(now);
+  const currentMonthNum = now.getMonth();
+  const currentYear = now.getFullYear();
+  const daysInMonth = new Date(currentYear, currentMonthNum + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentYear, currentMonthNum, 1).getDay(); // 0 is Sun
 
   // Generate calendar grid
   const calendarGrid = [];
@@ -116,11 +119,11 @@ export default async function AnalyticsPage() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px]">schedule</span>
+              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">schedule</span>
               <span className="text-[13px] font-medium">{hoursStudied}h studied</span>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px]">task_alt</span>
+              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">task_alt</span>
               <span className="text-[13px] font-medium">{totalSessions} sessions</span>
             </div>
             <div className="bg-white text-text-dark rounded-lg px-4 py-1.5 text-[13px] font-bold shadow-sm">
@@ -134,7 +137,7 @@ export default async function AnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '50ms' }}>
         <Card className="!p-5">
           <div className="flex items-center gap-2 mb-3 text-red">
-            <span className="material-symbols-outlined text-[18px]">event_busy</span>
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">event_busy</span>
             <h3 className="text-[13px] font-bold text-text-dark">Total Deadlines</h3>
           </div>
           <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">0</p>
@@ -142,7 +145,7 @@ export default async function AnalyticsPage() {
         </Card>
         <Card className="!p-5">
           <div className="flex items-center gap-2 mb-3 text-primary">
-            <span className="material-symbols-outlined text-[18px]">target</span>
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">target</span>
             <h3 className="text-[13px] font-bold text-text-dark">Study Goals</h3>
           </div>
           <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">0</p>
@@ -150,7 +153,7 @@ export default async function AnalyticsPage() {
         </Card>
         <Card className="!p-5">
           <div className="flex items-center gap-2 mb-3 text-indigo">
-            <span className="material-symbols-outlined text-[18px]">menu_book</span>
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">menu_book</span>
             <h3 className="text-[13px] font-bold text-text-dark">Courses Tracked</h3>
           </div>
           <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.courseStats?.length || 0}</p>
@@ -158,7 +161,7 @@ export default async function AnalyticsPage() {
         </Card>
         <Card className="!p-5">
           <div className="flex items-center gap-2 mb-3 text-orange">
-            <span className="material-symbols-outlined text-[18px]">group</span>
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">group</span>
             <h3 className="text-[13px] font-bold text-text-dark">New Connections</h3>
           </div>
           <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">0</p>
@@ -181,7 +184,7 @@ export default async function AnalyticsPage() {
 
           {!data?.courseStats || data.courseStats.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-10 text-text-muted">
-              <span className="material-symbols-outlined text-[48px] text-text-subdued mb-2">donut_large</span>
+              <span className="material-symbols-outlined text-[48px] text-text-subdued mb-2" aria-hidden="true">donut_large</span>
               <p className="text-[13px]">No course study data yet this month.</p>
             </div>
           ) : (
@@ -202,7 +205,7 @@ export default async function AnalyticsPage() {
                         strokeWidth="15"
                         strokeDasharray={strokeDasharray}
                         strokeDashoffset={`-${acc.offset}`}
-                        className="transition-all duration-500 hover:opacity-80"
+                        className="transition-opacity duration-500 hover:opacity-80"
                       />
                     );
                     acc.elements.push(element);
@@ -264,7 +267,7 @@ export default async function AnalyticsPage() {
                       
                       // Calculate opacity based on minutes studied (max 4 hours = 240 mins)
                       const intensity = Math.min(dayObj.minutes / 240, 1);
-                      const isToday = dayObj.day === new Date().getDate() && new Date().getMonth() === new Date().getMonth();
+                      const isToday = dayObj.day === now.getDate();
                       
                       return (
                         <div 

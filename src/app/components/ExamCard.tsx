@@ -27,15 +27,15 @@ export function ExamCard({ courseName, courseCode, date, time, room, duration, t
       
       <div className="mt-auto space-y-2">
         <div className="flex items-center text-on-surface-variant font-label-md">
-          <span className="material-symbols-outlined mr-2 text-[16px]">calendar_today</span>
+          <span className="material-symbols-outlined mr-2 text-[16px]" aria-hidden="true">calendar_today</span>
           {new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
         </div>
         <div className="flex items-center text-on-surface-variant font-label-md">
-          <span className="material-symbols-outlined mr-2 text-[16px]">schedule</span>
+          <span className="material-symbols-outlined mr-2 text-[16px]" aria-hidden="true">schedule</span>
           {time} <span className="ml-1 opacity-50">({duration})</span>
         </div>
         <div className="flex items-center text-on-surface-variant font-label-md">
-          <span className="material-symbols-outlined mr-2 text-[16px]">location_on</span>
+          <span className="material-symbols-outlined mr-2 text-[16px]" aria-hidden="true">location_on</span>
           {room || 'TBD'}
         </div>
       </div>

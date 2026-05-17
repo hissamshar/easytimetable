@@ -41,7 +41,7 @@ export default async function CalendarPage() {
 
       {events.length === 0 ? (
         <Card className="text-center py-12 animate-fade-in-up">
-          <span className="material-symbols-outlined text-[48px] text-text-subdued mb-3 block">event</span>
+          <span className="material-symbols-outlined text-[48px] text-text-subdued mb-3 block" aria-hidden="true">event</span>
           <p className="text-text-muted text-[14px]">No events found in the calendar.</p>
         </Card>
       ) : (
