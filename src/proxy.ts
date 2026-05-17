@@ -3,13 +3,13 @@ import type { NextRequest } from 'next/server'
 
 export function proxy(request: NextRequest) {
   const auth = request.cookies.get('auth')
-  const isLoginPage = request.nextUrl.pathname === '/login'
+  const isPublicPage = request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup'
 
-  if (!auth && !isLoginPage) {
+  if (!auth && !isPublicPage) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
   
-  if (auth && isLoginPage) {
+  if (auth && isPublicPage) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
