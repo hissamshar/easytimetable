@@ -23,7 +23,7 @@ export function Sidebar() {
   const router = useRouter();
   const user = useAuth();
   
-  if (pathname === '/login' || pathname === '/timer') return null;
+  if (pathname === '/login' || pathname === '/signup' || pathname === '/timer') return null;
 
   const navItems = [
     { href: '/', icon: 'dashboard', label: 'Dashboard' },
@@ -101,7 +101,7 @@ export function Sidebar() {
 export function TopAppBar() {
   const pathname = usePathname();
   const user = useAuth();
-  if (pathname === '/login' || pathname === '/timer') return null;
+  if (pathname === '/login' || pathname === '/signup' || pathname === '/timer') return null;
 
   const getPageTitle = () => {
     switch (pathname) {
@@ -164,7 +164,7 @@ export function TopAppBar() {
 export function BottomNav() {
   const pathname = usePathname();
   
-  if (pathname === '/login' || pathname === '/timer') return null;
+  if (pathname === '/login' || pathname === '/signup' || pathname === '/timer') return null;
 
   const navItems = [
     { href: '/', icon: 'dashboard', label: 'Home' },
