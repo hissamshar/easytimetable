@@ -243,7 +243,7 @@ export default async function AnalyticsPage() {
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">menu_book</span>
             <h3 className="text-[13px] font-bold text-text-dark">Courses Tracked</h3>
           </div>
-          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.courseStats?.length || 0} <span className="text-[16px] text-text-muted font-normal">/ {data?.enrolledCount || 0}</span></p>
+          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.courseStats?.filter((c: any) => c.course_code !== 'UNLINKED').length || 0} <span className="text-[16px] text-text-muted font-normal">/ {data?.enrolledCount || 0}</span></p>
           <p className="text-[11px] text-text-muted leading-snug">Courses studied via timer this month vs total enrolled.</p>
         </Card>
 
