@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 function useAuth() {
   const [user, setUser] = React.useState<{ name: string; roll: string } | null>(null);
@@ -98,8 +98,43 @@ export function Sidebar() {
   );
 }
 
+function SearchInput() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  return (
+    <div className="hidden md:flex flex-1 max-w-md mx-6">
+      <form 
+        className="relative w-full"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const formData = new FormData(e.currentTarget);
+          const query = formData.get('search');
+          if (query) {
+            router.push(`/search?q=${encodeURIComponent(query as string)}`);
+          }
+        }}
+      >
+        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]" aria-hidden="true">search</span>
+        <label htmlFor="global-search" className="sr-only">Search courses, rooms</label>
+        <input 
+          id="global-search"
+          className="w-full bg-bg-slate border border-border rounded-lg py-2 pl-9 pr-3 text-[13px] text-text-primary placeholder-text-subdued focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-colors" 
+          placeholder="Search courses, rooms…" 
+          type="text"
+          name="search"
+          defaultValue={searchParams?.get('q') || ''}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </form>
+    </div>
+  );
+}
+
 export function TopAppBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const user = useAuth();
   if (pathname === '/login' || pathname === '/signup' || pathname === '/timer') return null;
 
@@ -126,21 +161,9 @@ export function TopAppBar() {
       </div>
 
       {/* Search */}
-      <div className="hidden md:flex flex-1 max-w-md mx-6">
-        <div className="relative w-full">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]" aria-hidden="true">search</span>
-          <label htmlFor="global-search" className="sr-only">Search courses, rooms</label>
-          <input 
-            id="global-search"
-            className="w-full bg-bg-slate border border-border rounded-lg py-2 pl-9 pr-3 text-[13px] text-text-primary placeholder-text-subdued focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-colors" 
-            placeholder="Search courses, rooms…" 
-            type="text"
-            name="search"
-            autoComplete="off"
-            spellCheck={false}
-          />
-        </div>
-      </div>
+      <React.Suspense fallback={<div className="hidden md:flex flex-1 max-w-md mx-6" />}>
+        <SearchInput />
+      </React.Suspense>
 
       <div className="flex items-center gap-2">
         <Link href="/updates" className="relative p-2 text-text-muted hover:bg-bg-slate transition-colors rounded-lg" aria-label="Notifications">
