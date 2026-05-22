@@ -16,7 +16,6 @@ export default function TimerPage() {
   const [timeLeft, setTimeLeft] = useState(MODES.focus.minutes * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>(null);
   const [streak, setStreak] = useState(0);
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [courses, setCourses] = useState<any[]>([]);
@@ -24,7 +23,7 @@ export default function TimerPage() {
   const [completedCount, setCompletedCount] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<Date | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isSavingRef = useRef(false);
 
   // Bug 1: Per-mode time persistence ref
   const modeTimesRef = useRef<Record<SessionMode, number>>({
@@ -72,7 +71,6 @@ export default function TimerPage() {
       const res = await fetch('/api/study-sessions');
       const data = await res.json();
       if (data.today) setSessions(data.today);
-      if (data.weekly) setStats(data.weekly);
       if (data.streak !== undefined) setStreak(data.streak);
       setCompletedCount(data.today?.filter((s: any) => s.session_type === 'focus').length || 0);
     } catch { /* ignore */ }
@@ -98,6 +96,9 @@ export default function TimerPage() {
 
   // Bug 4: handleComplete wrapped in useCallback with proper deps
   const handleComplete = useCallback(async () => {
+    if (isSavingRef.current) return;
+    isSavingRef.current = true;
+
     // Play notification sound (browser built-in)
     try {
       const ctx = new AudioContext();
@@ -147,6 +148,10 @@ export default function TimerPage() {
     } else {
       switchMode('focus');
     }
+
+    setTimeout(() => {
+      isSavingRef.current = false;
+    }, 1000);
   }, [mode, completedCount, selectedCourse, fetchData, switchMode]);
 
   // Timer countdown — depends on handleComplete (bug 4)
@@ -342,7 +347,9 @@ export default function TimerPage() {
               <p className="text-[64px] md:text-[72px] font-bold text-white tabular-nums tracking-tight font-heading leading-none">
                 {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
               </p>
-              <p className="text-[13px] text-white/50 mt-2">{MODES[mode].label}</p>
+              <p className="text-[13px] text-white/50 mt-2">
+                {selectedCourse ? `${selectedCourse.course_code} • ${MODES[mode].label}` : MODES[mode].label}
+              </p>
             </div>
           </div>
 

@@ -108,8 +108,8 @@ export async function POST(request: Request) {
     }
 
     const res = await pool.query(
-      `INSERT INTO study_sessions (student_id, course_id, session_type, duration_minutes, completed_at)
-       VALUES ($1, $2, $3, $4, NOW())
+      `INSERT INTO study_sessions (student_id, course_id, session_type, duration_minutes)
+       VALUES ($1, $2, $3, $4)
        RETURNING *`,
       [studentId, course_id || null, session_type, duration_minutes]
     );

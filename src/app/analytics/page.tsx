@@ -135,6 +135,29 @@ export default async function AnalyticsPage() {
   }
 
   const data = studentId ? await getAnalyticsData(studentId) : null;
+
+  if (!studentId || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 animate-fade-in-up">
+        <div className="w-20 h-20 bg-bg-slate rounded-full flex items-center justify-center mb-6 shadow-inner">
+          <span className="material-symbols-outlined text-[40px] text-text-subdued" aria-hidden="true">lock</span>
+        </div>
+        <h1 className="text-[24px] md:text-[28px] font-bold text-text-dark font-heading mb-3">
+          Sign in to view Analytics
+        </h1>
+        <p className="text-[14px] md:text-[15px] text-text-muted max-w-md mx-auto mb-8 leading-relaxed">
+          Track your study sessions, monitor your weekly progress, and see how you&apos;re spending time across different courses.
+        </p>
+        <Link 
+          href="/login" 
+          className="bg-primary text-white rounded-xl px-8 py-3.5 text-[15px] font-bold shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-0.5 transition-all active:translate-y-0 flex items-center gap-2"
+        >
+          <span>Sign In to Continue</span>
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">arrow_forward</span>
+        </Link>
+      </div>
+    );
+  }
   
   const totalMinutes = parseInt(data?.monthStats?.total_minutes || '0');
   const hoursStudied = Math.floor(totalMinutes / 60);
