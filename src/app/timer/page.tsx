@@ -21,8 +21,10 @@ export default function TimerPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [completedCount, setCompletedCount] = useState(0);
+  
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<Date | null>(null);
+  
   const isSavingRef = useRef(false);
 
   // Bug 1: Per-mode time persistence ref
@@ -31,6 +33,17 @@ export default function TimerPage() {
     short_break: MODES.short_break.minutes * 60,
     long_break: MODES.long_break.minutes * 60,
   });
+
+  // Refs for current state to avoid closure bugs in setInterval
+  const stateRef = useRef({
+    mode,
+    selectedCourse,
+    completedCount
+  });
+
+  useEffect(() => {
+    stateRef.current = { mode, selectedCourse, completedCount };
+  }, [mode, selectedCourse, completedCount]);
 
   // Bug 5: Load from localStorage on mount (never restore isRunning)
   useEffect(() => {
@@ -94,12 +107,13 @@ export default function TimerPage() {
     if (intervalRef.current) clearInterval(intervalRef.current);
   }, []);
 
-  // Bug 4: handleComplete wrapped in useCallback with proper deps
   const handleComplete = useCallback(async () => {
     if (isSavingRef.current) return;
     isSavingRef.current = true;
 
-    // Play notification sound (browser built-in)
+    const { mode: currentMode, selectedCourse: currentCourse, completedCount: currentCount } = stateRef.current;
+    
+    // Play notification sound
     try {
       const ctx = new AudioContext();
       const osc = ctx.createOscillator();
@@ -128,19 +142,19 @@ export default function TimerPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          session_type: mode,
-          duration_minutes: MODES[mode].minutes,
-          course_id: selectedCourse?.course_id || null,
+          session_type: currentMode,
+          duration_minutes: MODES[currentMode].minutes,
+          course_id: currentCourse?.course_id || null,
         }),
       });
       fetchData();
     } catch { /* ignore */ }
 
-    // Auto-advance: focus -> short break, after 4 focus sessions -> long break
-    if (mode === 'focus') {
-      const newCount = completedCount + 1;
+    // Auto-advance
+    if (currentMode === 'focus') {
+      const newCount = currentCount + 1;
       setCompletedCount(newCount);
-      if (newCount % 4 === 0) {
+      if (newCount > 0 && newCount % 4 === 0) {
         switchMode('long_break');
       } else {
         switchMode('short_break');
@@ -152,20 +166,21 @@ export default function TimerPage() {
     setTimeout(() => {
       isSavingRef.current = false;
     }, 1000);
-  }, [mode, completedCount, selectedCourse, fetchData, switchMode]);
+  }, [fetchData, switchMode]);
 
-  // Timer countdown — depends on handleComplete (bug 4)
+  // Timer countdown — depends on handleComplete
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
       intervalRef.current = setInterval(() => {
         setTimeLeft(prev => {
           const next = prev - 1;
           // Bug 1: update per-mode time on every tick
-          modeTimesRef.current[mode] = next;
+          modeTimesRef.current[stateRef.current.mode] = next;
           if (next <= 0) {
             clearInterval(intervalRef.current!);
             setIsRunning(false);
-            handleComplete();
+            // Defer handleComplete to avoid state updater conflict
+            setTimeout(handleComplete, 0);
             return 0;
           }
           return next;
@@ -175,7 +190,7 @@ export default function TimerPage() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isRunning, mode, handleComplete]);
+  }, [isRunning, handleComplete, timeLeft]);
 
   const toggleTimer = () => {
     if (!isRunning) {
@@ -242,7 +257,7 @@ export default function TimerPage() {
           {(Object.entries(MODES) as [SessionMode, typeof MODES.focus][]).map(([key, m]) => (
             <div
               key={key}
-              onClick={() => !isRunning && switchMode(key)}
+              onClick={() => !isRunning && switchMode(key as SessionMode)}
               className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors text-left cursor-pointer ${
                 mode === key 
                   ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-lg' 
@@ -315,11 +330,11 @@ export default function TimerPage() {
         </div>
       </div>
 
-      {/* Center — Timer (Bug 2: responsive centering) */}
+      {/* Center — Timer */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center min-h-screen md:min-h-0 md:h-full">
         {/* Timer Card */}
         <div className="bg-black/40 backdrop-blur-xl rounded-3xl border border-white/15 p-8 md:p-12 shadow-2xl flex flex-col items-center min-w-[300px]">
-          {/* Progress Ring — Bug 2: responsive SVG */}
+          {/* Progress Ring */}
           <div className="relative w-[260px] h-[260px] sm:w-[300px] sm:h-[300px]">
             <svg viewBox="0 0 300 300" className="transform -rotate-90 w-full h-full">
               {/* Background circle */}
@@ -342,7 +357,7 @@ export default function TimerPage() {
                 style={{ filter: `drop-shadow(0 0 8px ${MODES[mode].color}60)` }}
               />
             </svg>
-            {/* Time Display — Bug 2: absolute inset-0 for centering */}
+            {/* Time Display */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <p className="text-[64px] md:text-[72px] font-bold text-white tabular-nums tracking-tight font-heading leading-none">
                 {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}

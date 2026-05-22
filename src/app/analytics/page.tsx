@@ -17,18 +17,19 @@ async function getAnalyticsData(studentId: number) {
          COUNT(*) as total_sessions
        FROM study_sessions
        WHERE student_id = $1 
-         AND date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE)`,
+         AND date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE)
+         AND session_type = 'focus'`,
       [studentId]
     );
 
-    // Study time by course
+    // Study time by course (including unlinked sessions)
     const courseStatsRes = await pool.query(
       `SELECT 
-         c.course_name,
-         c.course_code,
+         COALESCE(c.course_name, 'General Study') as course_name,
+         COALESCE(c.course_code, 'UNLINKED') as course_code,
          COALESCE(SUM(ss.duration_minutes), 0) as minutes
        FROM study_sessions ss
-       JOIN courses c ON ss.course_id = c.course_id
+       LEFT JOIN courses c ON ss.course_id = c.course_id
        WHERE ss.student_id = $1 
          AND date_trunc('month', ss.created_at) = date_trunc('month', CURRENT_DATE)
          AND ss.session_type = 'focus'

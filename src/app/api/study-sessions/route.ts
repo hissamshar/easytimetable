@@ -53,7 +53,7 @@ export async function GET() {
       [studentId]
     );
 
-    // Get streak (consecutive days with at least 1 focus session)
+    // Get streak (consecutive days with at least 1 focus session, must include today or yesterday)
     const streakRes = await pool.query(
       `WITH days AS (
          SELECT DISTINCT created_at::date as study_date
@@ -65,10 +65,17 @@ export async function GET() {
          SELECT study_date, 
                 study_date - (ROW_NUMBER() OVER (ORDER BY study_date DESC))::int * INTERVAL '1 day' as grp
          FROM days
+       ),
+       streak_calc AS (
+         SELECT COUNT(*) as streak, MAX(study_date) as last_study
+         FROM numbered
+         WHERE grp = (SELECT grp FROM numbered LIMIT 1)
        )
-       SELECT COUNT(*) as streak
-       FROM numbered
-       WHERE grp = (SELECT grp FROM numbered LIMIT 1)`,
+       SELECT CASE 
+         WHEN last_study >= CURRENT_DATE - INTERVAL '1 day' THEN streak 
+         ELSE 0 
+       END as streak
+       FROM streak_calc`,
       [studentId]
     );
 
