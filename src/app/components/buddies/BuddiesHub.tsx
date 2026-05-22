@@ -201,14 +201,43 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
                   </p>
                 </div>
               </div>
-              <div className="flex shrink-0 ml-2">
+              <div className="flex shrink-0 ml-2 gap-1 sm:gap-2">
                 <button 
                   onClick={() => alert("Find Free Time coming in Phase 3!")}
-                  className="px-2 py-1.5 sm:px-3 bg-indigo/10 text-indigo rounded-lg text-[11px] sm:text-[12px] font-semibold hover:bg-indigo/20 transition-colors flex items-center gap-1 whitespace-nowrap"
+                  className="hidden md:flex px-2 py-1.5 sm:px-3 bg-indigo/10 text-indigo rounded-lg text-[11px] sm:text-[12px] font-semibold hover:bg-indigo/20 transition-colors items-center gap-1 whitespace-nowrap"
                 >
                   <span className="material-symbols-outlined text-[14px] sm:text-[16px]">calendar_month</span>
-                  <span className="hidden sm:inline">Find Free Time</span>
-                  <span className="sm:hidden">Sync</span>
+                  <span className="hidden sm:inline">Sync</span>
+                </button>
+                <button 
+                  onClick={async () => {
+                    if (!confirm(`Are you sure you want to delete all messages with ${selectedBuddy.buddy_name}? This cannot be undone.`)) return;
+                    try {
+                      const res = await fetch(`/api/messages?buddy_id=${selectedBuddy.buddy_id}`, { method: 'DELETE' });
+                      if (res.ok) setMessages([]);
+                    } catch (err) { console.error(err); }
+                  }}
+                  className="p-1.5 text-text-muted hover:text-red hover:bg-red/10 rounded-lg transition-colors flex items-center justify-center"
+                  title="Clear Chat"
+                >
+                  <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+                </button>
+                <button 
+                  onClick={async () => {
+                    if (!confirm(`Are you sure you want to block ${selectedBuddy.buddy_name}?`)) return;
+                    try {
+                      const res = await fetch('/api/connections', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ connection_id: selectedBuddy.connection_id, status: 'blocked' })
+                      });
+                      if (res.ok) window.location.reload();
+                    } catch (err) { console.error(err); }
+                  }}
+                  className="p-1.5 text-text-muted hover:text-red hover:bg-red/10 rounded-lg transition-colors flex items-center justify-center"
+                  title="Block User"
+                >
+                  <span className="material-symbols-outlined text-[18px]">block</span>
                 </button>
               </div>
             </div>

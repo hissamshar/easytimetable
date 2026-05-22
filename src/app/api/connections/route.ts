@@ -95,14 +95,20 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { connection_id, status } = body;
 
-    if (!connection_id || !['accepted', 'declined'].includes(status)) {
+    if (!connection_id || !['accepted', 'declined', 'blocked'].includes(status)) {
       return NextResponse.json({ error: 'Valid connection_id and status required' }, { status: 400 });
+    }
+
+    // Only receiver can accept/decline, but either party can block
+    let whereClause = `connection_id = $2 AND receiver_id = $3`;
+    if (status === 'blocked') {
+      whereClause = `connection_id = $2 AND (receiver_id = $3 OR requester_id = $3)`;
     }
 
     const res = await pool.query(
       `UPDATE student_connections 
        SET status = $1, updated_at = CURRENT_TIMESTAMP
-       WHERE connection_id = $2 AND receiver_id = $3
+       WHERE ${whereClause}
        RETURNING *`,
       [status, connection_id, studentId]
     );

@@ -78,3 +78,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  const cookieStore = await cookies();
+  const authCookie = cookieStore.get('auth');
+  if (!authCookie) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  try {
+    const studentId = JSON.parse(authCookie.value).id;
+    const { searchParams } = new URL(request.url);
+    const buddyId = searchParams.get('buddy_id');
+
+    if (!buddyId) {
+      return NextResponse.json({ error: 'buddy_id is required' }, { status: 400 });
+    }
+
+    await pool.query(
+      `DELETE FROM messages 
+       WHERE (sender_id = $1 AND receiver_id = $2) 
+          OR (sender_id = $2 AND receiver_id = $1)`,
+      [studentId, buddyId]
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Messages DELETE error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
