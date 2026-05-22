@@ -47,10 +47,31 @@ async function getAnalyticsData(studentId: number) {
       [studentId]
     );
 
+    // Deadlines count
+    const deadlinesRes = await pool.query(
+      `SELECT COUNT(*) as count FROM student_deadlines WHERE student_id = $1 AND is_completed = false`,
+      [studentId]
+    );
+
+    // Active goals count
+    const goalsRes = await pool.query(
+      `SELECT COUNT(*) as count FROM study_goals WHERE student_id = $1 AND CURRENT_DATE BETWEEN start_date AND end_date`,
+      [studentId]
+    );
+
+    // Connections count
+    const connectionsRes = await pool.query(
+      `SELECT COUNT(*) as count FROM student_connections WHERE status = 'accepted' AND (requester_id = $1 OR receiver_id = $1)`,
+      [studentId]
+    );
+
     return {
       monthStats: monthStatsRes.rows[0],
       courseStats: courseStatsRes.rows,
       dailyStats: dailyStatsRes.rows,
+      deadlinesCount: parseInt(deadlinesRes.rows[0]?.count || '0'),
+      goalsCount: parseInt(goalsRes.rows[0]?.count || '0'),
+      connectionsCount: parseInt(connectionsRes.rows[0]?.count || '0'),
     };
   } catch (err) {
     console.error('Analytics fetch error:', err);
@@ -135,23 +156,23 @@ export default async function AnalyticsPage() {
 
       {/* 4-Card Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '50ms' }}>
-        <Card className="!p-5">
+        <Card className="!p-5 relative group overflow-hidden">
           <div className="flex items-center gap-2 mb-3 text-red">
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">event_busy</span>
             <h3 className="text-[13px] font-bold text-text-dark">Total Deadlines</h3>
           </div>
-          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">0</p>
-          <p className="text-[11px] text-text-muted leading-snug">No deadlines yet. Add a small milestone to stay on track.</p>
+          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.deadlinesCount || 0}</p>
+          <p className="text-[11px] text-text-muted leading-snug">Pending tasks and milestones you need to complete.</p>
         </Card>
-        <Card className="!p-5">
+        <Card className="!p-5 relative group overflow-hidden">
           <div className="flex items-center gap-2 mb-3 text-primary">
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">target</span>
             <h3 className="text-[13px] font-bold text-text-dark">Study Goals</h3>
           </div>
-          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">0</p>
-          <p className="text-[11px] text-text-muted leading-snug">No goals yet. Set one tiny goal for this week to get momentum.</p>
+          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.goalsCount || 0}</p>
+          <p className="text-[11px] text-text-muted leading-snug">Active goals you are working towards this week.</p>
         </Card>
-        <Card className="!p-5">
+        <Card className="!p-5 relative group overflow-hidden">
           <div className="flex items-center gap-2 mb-3 text-indigo">
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">menu_book</span>
             <h3 className="text-[13px] font-bold text-text-dark">Courses Tracked</h3>
@@ -159,13 +180,13 @@ export default async function AnalyticsPage() {
           <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.courseStats?.length || 0}</p>
           <p className="text-[11px] text-text-muted leading-snug">Courses you have studied this month using the timer.</p>
         </Card>
-        <Card className="!p-5">
+        <Card className="!p-5 relative group overflow-hidden">
           <div className="flex items-center gap-2 mb-3 text-orange">
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">group</span>
             <h3 className="text-[13px] font-bold text-text-dark">New Connections</h3>
           </div>
-          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">0</p>
-          <p className="text-[11px] text-text-muted leading-snug">Invite a study buddy. Accountability boosts success.</p>
+          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.connectionsCount || 0}</p>
+          <p className="text-[11px] text-text-muted leading-snug">Study buddies and connections you have made.</p>
         </Card>
       </div>
 
