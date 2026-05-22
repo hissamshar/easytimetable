@@ -14,16 +14,17 @@ export default async function BuddiesPage() {
 
   const studentId = JSON.parse(authCookie.value).id;
 
-  // Fetch accepted connections
+  // Fetch connections (both accepted and pending)
   const connectionsRes = await pool.query(
-    `SELECT c.connection_id, c.requester_id, c.receiver_id,
+    `SELECT c.connection_id, c.requester_id, c.receiver_id, c.status,
       CASE WHEN c.requester_id = $1 THEN rec.name ELSE req.name END as buddy_name,
       CASE WHEN c.requester_id = $1 THEN rec.roll_number ELSE req.roll_number END as buddy_roll,
       CASE WHEN c.requester_id = $1 THEN c.receiver_id ELSE c.requester_id END as buddy_id
      FROM student_connections c
      JOIN students req ON c.requester_id = req.student_id
      JOIN students rec ON c.receiver_id = rec.student_id
-     WHERE (c.requester_id = $1 OR c.receiver_id = $1) AND c.status = 'accepted'`,
+     WHERE (c.requester_id = $1 OR c.receiver_id = $1) 
+       AND c.status IN ('accepted', 'pending')`,
     [studentId]
   );
 

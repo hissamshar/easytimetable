@@ -36,25 +36,49 @@ export async function POST(request: Request) {
   try {
     const studentId = JSON.parse(authCookie.value).id;
     const body = await request.json();
-    const { receiver_id } = body;
+    const { roll_number } = body;
 
-    if (!receiver_id) {
-      return NextResponse.json({ error: 'receiver_id is required' }, { status: 400 });
+    if (!roll_number) {
+      return NextResponse.json({ error: 'roll_number is required' }, { status: 400 });
     }
+
+    // Look up the student by roll number
+    const studentRes = await pool.query(
+      `SELECT student_id FROM students WHERE roll_number = $1`,
+      [roll_number.trim()]
+    );
+
+    if (studentRes.rows.length === 0) {
+      return NextResponse.json({ error: 'Student with this roll number not found' }, { status: 404 });
+    }
+
+    const receiver_id = studentRes.rows[0].student_id;
 
     if (studentId === receiver_id) {
       return NextResponse.json({ error: 'Cannot connect with yourself' }, { status: 400 });
     }
 
+    // Insert the connection. 
+    // We check if it already exists in either direction (A->B or B->A).
+    const existingRes = await pool.query(
+      `SELECT * FROM student_connections 
+       WHERE (requester_id = $1 AND receiver_id = $2) 
+          OR (requester_id = $2 AND receiver_id = $1)`,
+      [studentId, receiver_id]
+    );
+
+    if (existingRes.rows.length > 0) {
+      return NextResponse.json({ error: 'Connection or request already exists' }, { status: 400 });
+    }
+
     const res = await pool.query(
-      `INSERT INTO student_connections (requester_id, receiver_id)
-       VALUES ($1, $2)
-       ON CONFLICT (requester_id, receiver_id) DO NOTHING
+      `INSERT INTO student_connections (requester_id, receiver_id, status)
+       VALUES ($1, $2, 'pending')
        RETURNING *`,
       [studentId, receiver_id]
     );
 
-    return NextResponse.json({ connection: res.rows[0] || null }, { status: 201 });
+    return NextResponse.json({ connection: res.rows[0] }, { status: 201 });
   } catch (error) {
     console.error('Connections POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
