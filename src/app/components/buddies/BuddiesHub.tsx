@@ -132,10 +132,12 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
   };
 
   return (
-    <div className="flex w-full h-full">
+    <div className="flex w-full h-full relative overflow-hidden">
       {/* Sidebar */}
-      <div className="w-1/3 min-w-[250px] border-r border-border bg-bg-slate flex flex-col h-full overflow-y-auto">
-        <div className="p-4 border-b border-border flex justify-between items-center">
+      <div 
+        className={`${selectedBuddy ? 'hidden md:flex' : 'flex'} w-full md:w-1/3 md:min-w-[250px] md:border-r border-border bg-bg-slate flex-col h-full overflow-y-auto absolute md:relative z-20 md:z-0`}
+      >
+        <div className="p-4 border-b border-border flex justify-between items-center sticky top-0 bg-bg-slate z-10">
           <h2 className="text-[14px] font-bold text-text-dark">Your Buddies</h2>
           <button 
             onClick={() => setIsInviteModalOpen(true)}
@@ -147,8 +149,8 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
         </div>
         <div className="flex-1">
           {connections.length === 0 ? (
-            <div className="p-4 text-[13px] text-text-muted text-center">
-              You haven't added any study buddies yet. Go to Analytics to send invites!
+            <div className="p-4 text-[13px] text-text-muted text-center mt-4">
+              You haven't added any study buddies yet. Click the + icon to send invites!
             </div>
           ) : (
             connections.map(conn => (
@@ -168,7 +170,7 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
                   </p>
                 </div>
                 {conn.status === 'accepted' && (
-                  <div className="w-2.5 h-2.5 rounded-full bg-text-subdued" title="Offline" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-text-subdued shrink-0" title="Offline" />
                 )}
               </button>
             ))
@@ -177,29 +179,36 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
       </div>
 
       {/* Main Area */}
-      <div className="flex-1 flex flex-col h-full bg-bg-white relative">
+      <div className={`${!selectedBuddy ? 'hidden md:flex' : 'flex'} flex-1 flex-col h-full bg-bg-white relative z-10 w-full`}>
         {selectedBuddy ? (
           <>
             {/* Header */}
-            <div className="p-4 border-b border-border flex justify-between items-center bg-bg-white z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-indigo/20 flex items-center justify-center text-indigo font-bold">
+            <div className="p-4 border-b border-border flex justify-between items-center bg-bg-white z-10 sticky top-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button 
+                  onClick={() => setSelectedBuddy(null)}
+                  className="md:hidden w-8 h-8 flex items-center justify-center text-text-muted hover:bg-bg-slate rounded-full shrink-0"
+                >
+                  <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-indigo/20 flex items-center justify-center text-indigo font-bold shrink-0">
                   {selectedBuddy.buddy_name.charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <h3 className="text-[15px] font-bold text-text-dark">{selectedBuddy.buddy_name}</h3>
-                  <p className="text-[11px] text-text-muted">
+                <div className="min-w-0">
+                  <h3 className="text-[14px] sm:text-[15px] font-bold text-text-dark truncate">{selectedBuddy.buddy_name}</h3>
+                  <p className="text-[10px] sm:text-[11px] text-text-muted truncate">
                     {selectedBuddy.status === 'pending' ? 'Invitation Pending' : 'Chatting & Collaborating'}
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex shrink-0 ml-2">
                 <button 
                   onClick={() => alert("Find Free Time coming in Phase 3!")}
-                  className="px-3 py-1.5 bg-indigo/10 text-indigo rounded-lg text-[12px] font-semibold hover:bg-indigo/20 transition-colors flex items-center gap-1"
+                  className="px-2 py-1.5 sm:px-3 bg-indigo/10 text-indigo rounded-lg text-[11px] sm:text-[12px] font-semibold hover:bg-indigo/20 transition-colors flex items-center gap-1 whitespace-nowrap"
                 >
-                  <span className="material-symbols-outlined text-[16px]">calendar_month</span>
-                  Find Free Time
+                  <span className="material-symbols-outlined text-[14px] sm:text-[16px]">calendar_month</span>
+                  <span className="hidden sm:inline">Find Free Time</span>
+                  <span className="sm:hidden">Sync</span>
                 </button>
               </div>
             </div>

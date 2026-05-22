@@ -29,13 +29,13 @@ export default async function BuddiesPage() {
   );
 
   return (
-    <div className="h-[calc(100vh-140px)] flex flex-col">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold font-heading text-text-dark">Study Buddies</h1>
-        <p className="text-text-muted">Chat, nudge, and collaborate with your study partners.</p>
+    <div className="h-[calc(100vh-140px)] md:h-[calc(100vh-140px)] flex flex-col">
+      <div className="mb-4 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold font-heading text-text-dark">Study Buddies</h1>
+        <p className="text-sm md:text-base text-text-muted">Chat, nudge, and collaborate with your study partners.</p>
       </div>
       
-      <div className="flex-1 bg-bg-white border border-border rounded-2xl overflow-hidden shadow-sm flex min-h-0">
+      <div className="flex-1 bg-bg-white border border-border rounded-xl md:rounded-2xl overflow-hidden shadow-sm flex min-h-0 relative">
         <BuddiesHub 
           connections={connectionsRes.rows} 
           currentUserId={studentId}
