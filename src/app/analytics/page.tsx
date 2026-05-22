@@ -3,6 +3,9 @@ import { cookies } from 'next/headers';
 import pool from '@/lib/db';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import { DeadlinesCard } from '../components/analytics/DeadlinesCard';
+import { GoalsCard } from '../components/analytics/GoalsCard';
+import { ConnectionsCard } from '../components/analytics/ConnectionsCard';
 
 async function getAnalyticsData(studentId: number) {
   try {
@@ -156,23 +159,10 @@ export default async function AnalyticsPage() {
 
       {/* 4-Card Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '50ms' }}>
-        <Card className="!p-5 relative group overflow-hidden">
-          <div className="flex items-center gap-2 mb-3 text-red">
-            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">event_busy</span>
-            <h3 className="text-[13px] font-bold text-text-dark">Total Deadlines</h3>
-          </div>
-          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.deadlinesCount || 0}</p>
-          <p className="text-[11px] text-text-muted leading-snug">Pending tasks and milestones you need to complete.</p>
-        </Card>
-        <Card className="!p-5 relative group overflow-hidden">
-          <div className="flex items-center gap-2 mb-3 text-primary">
-            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">target</span>
-            <h3 className="text-[13px] font-bold text-text-dark">Study Goals</h3>
-          </div>
-          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.goalsCount || 0}</p>
-          <p className="text-[11px] text-text-muted leading-snug">Active goals you are working towards this week.</p>
-        </Card>
-        <Card className="!p-5 relative group overflow-hidden">
+        <DeadlinesCard initialCount={data?.deadlinesCount || 0} />
+        <GoalsCard initialCount={data?.goalsCount || 0} />
+        
+        <Card className="!p-5 relative group overflow-hidden hover:border-indigo transition-colors">
           <div className="flex items-center gap-2 mb-3 text-indigo">
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">menu_book</span>
             <h3 className="text-[13px] font-bold text-text-dark">Courses Tracked</h3>
@@ -180,14 +170,8 @@ export default async function AnalyticsPage() {
           <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.courseStats?.length || 0}</p>
           <p className="text-[11px] text-text-muted leading-snug">Courses you have studied this month using the timer.</p>
         </Card>
-        <Card className="!p-5 relative group overflow-hidden">
-          <div className="flex items-center gap-2 mb-3 text-orange">
-            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">group</span>
-            <h3 className="text-[13px] font-bold text-text-dark">New Connections</h3>
-          </div>
-          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.connectionsCount || 0}</p>
-          <p className="text-[11px] text-text-muted leading-snug">Study buddies and connections you have made.</p>
-        </Card>
+
+        <ConnectionsCard initialCount={data?.connectionsCount || 0} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
