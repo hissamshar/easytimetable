@@ -117,3 +117,35 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  const cookieStore = await cookies();
+  const authCookie = cookieStore.get('auth');
+  if (!authCookie) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  try {
+    const studentId = JSON.parse(authCookie.value).id;
+    const { searchParams } = new URL(request.url);
+    const connection_id = searchParams.get('connection_id');
+
+    if (!connection_id) {
+      return NextResponse.json({ error: 'connection_id required' }, { status: 400 });
+    }
+
+    const res = await pool.query(
+      `DELETE FROM student_connections 
+       WHERE connection_id = $1 AND (requester_id = $2 OR receiver_id = $2)
+       RETURNING *`,
+      [connection_id, studentId]
+    );
+
+    if (res.rows.length === 0) {
+      return NextResponse.json({ error: 'Connection not found or unauthorized' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, deleted: res.rows[0] });
+  } catch (error) {
+    console.error('Connections DELETE error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
