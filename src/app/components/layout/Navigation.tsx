@@ -79,9 +79,9 @@ export function Sidebar() {
 
       {/* User Avatar + Logout */}
       <div className="flex flex-col items-center gap-2 mt-auto pt-3 border-t border-white/10 w-full px-2">
-        <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-white font-bold text-[11px] cursor-default" title={user?.name || 'Student'}>
+        <Link href="/profile" className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-white font-bold text-[11px] hover:opacity-80 transition-opacity" title={user?.name || 'Student'}>
           {initials}
-        </div>
+        </Link>
         <button
           onClick={async () => {
             await fetch('/api/logout', { method: 'POST' });
@@ -147,7 +147,14 @@ export function TopAppBar() {
           <span className="material-symbols-outlined text-[20px]" aria-hidden="true">notifications</span>
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red rounded-full border-2 border-bg-white"></span>
         </Link>
-        <div className="hidden md:flex items-center gap-2 ml-2 pl-3 border-l border-border">
+        
+        {/* Mobile Profile Link */}
+        <Link href="/profile" className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-primary-10 text-primary font-bold text-[11px] ml-1">
+          {user?.name?.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'ST'}
+        </Link>
+
+        {/* Desktop Profile Link */}
+        <Link href="/profile" className="hidden md:flex items-center gap-2 ml-2 pl-3 border-l border-border hover:bg-bg-slate p-2 rounded-lg transition-colors cursor-pointer">
           <div className="w-8 h-8 rounded-full bg-primary-10 flex items-center justify-center text-primary font-bold text-[11px]">
             {user?.name?.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'ST'}
           </div>
@@ -155,7 +162,7 @@ export function TopAppBar() {
             <p className="text-[12px] font-semibold text-text-dark leading-tight">{user?.name ? user.name.split(' ')[0] : 'Student'}</p>
             <p className="text-[10px] text-text-muted leading-tight">{user?.roll || ''}</p>
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   );
