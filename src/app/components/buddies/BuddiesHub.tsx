@@ -30,6 +30,10 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteRollNumber, setInviteRollNumber] = useState('');
   
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [syncData, setSyncData] = useState<any>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   async function handleInvite(e: React.FormEvent) {
@@ -71,6 +75,84 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
     } catch (err) {
       console.error(err);
     }
+  }
+
+  async function handleSync() {
+    if (!selectedBuddy) return;
+    setIsSyncModalOpen(true);
+    setSyncLoading(true);
+    setSyncData(null);
+    try {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const today = days[new Date().getDay()];
+      const res = await fetch(`/api/connections/sync?buddy_id=${selectedBuddy.buddy_id}&day=${today}`);
+      if (res.ok) {
+        const data = await res.json();
+        
+        const parseTime = (t: string) => {
+          const [h, m] = t.split(':').map(Number);
+          return h * 60 + m;
+        };
+        const formatTime = (mins: number) => {
+          const h = Math.floor(mins / 60);
+          const m = mins % 60;
+          const ampm = h >= 12 ? 'PM' : 'AM';
+          const hr = h % 12 || 12;
+          return `${hr}:${m.toString().padStart(2, '0')} ${ampm}`;
+        };
+
+        const START_MINS = 8 * 60 + 30; // 8:30 AM
+        const END_MINS = 18 * 60; // 6:00 PM
+        
+        let busyIntervals: [number, number][] = [];
+        const addIntervals = (schedule: any[]) => {
+          schedule.forEach((c: any) => {
+            busyIntervals.push([parseTime(c.start_time), parseTime(c.end_time)]);
+          });
+        };
+        addIntervals(data.my_schedule || []);
+        addIntervals(data.buddy_schedule || []);
+        
+        busyIntervals.sort((a, b) => a[0] - b[0]);
+        const merged: [number, number][] = [];
+        if (busyIntervals.length > 0) {
+          let current = busyIntervals[0];
+          for (let i = 1; i < busyIntervals.length; i++) {
+            if (busyIntervals[i][0] <= current[1]) {
+              current[1] = Math.max(current[1], busyIntervals[i][1]);
+            } else {
+              merged.push(current);
+              current = busyIntervals[i];
+            }
+          }
+          merged.push(current);
+        }
+
+        const freeSlots: string[] = [];
+        let currentStart = START_MINS;
+        
+        for (const busy of merged) {
+          if (currentStart < busy[0]) {
+            freeSlots.push(`${formatTime(currentStart)} - ${formatTime(busy[0])}`);
+          }
+          currentStart = Math.max(currentStart, busy[1]);
+        }
+        if (currentStart < END_MINS) {
+          freeSlots.push(`${formatTime(currentStart)} - ${formatTime(END_MINS)}`);
+        }
+
+        setSyncData({
+          day: today,
+          freeSlots: freeSlots.length > 0 ? freeSlots : ['No common free time today'],
+          myCount: data.my_schedule?.length || 0,
+          buddyCount: data.buddy_schedule?.length || 0
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setSyncData({ error: 'Failed to load schedules' });
+    }
+    setSyncLoading(false);
   }
 
   // Fetch messages when buddy changes
@@ -203,7 +285,7 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
               </div>
               <div className="flex shrink-0 ml-2 gap-1 sm:gap-2">
                 <button 
-                  onClick={() => alert("Find Free Time coming in Phase 3!")}
+                  onClick={handleSync}
                   className="hidden md:flex px-2 py-1.5 sm:px-3 bg-indigo/10 text-indigo rounded-lg text-[11px] sm:text-[12px] font-semibold hover:bg-indigo/20 transition-colors items-center gap-1 whitespace-nowrap"
                 >
                   <span className="material-symbols-outlined text-[14px] sm:text-[16px]">calendar_month</span>
@@ -379,6 +461,53 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
                 {inviteLoading ? 'Sending Request...' : 'Send Request'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {isSyncModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsSyncModalOpen(false)}>
+          <div className="bg-bg-white rounded-2xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-[18px] font-bold font-heading text-text-dark flex items-center gap-2">
+                <span className="material-symbols-outlined text-indigo">calendar_month</span>
+                Sync Free Time
+              </h2>
+              <button onClick={() => setIsSyncModalOpen(false)} className="text-text-muted hover:text-text-dark">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <p className="text-[14px] text-text-muted text-center">
+                Finding common free slots today ({syncData?.day || '...'}) between 8:30 AM and 6:00 PM.
+              </p>
+              
+              {syncLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <span className="material-symbols-outlined text-[32px] text-indigo animate-spin">sync</span>
+                </div>
+              ) : syncData?.error ? (
+                <div className="bg-red/10 text-red p-4 rounded-xl text-[14px] text-center">
+                  {syncData.error}
+                </div>
+              ) : syncData ? (
+                <div className="bg-bg-slate p-4 rounded-xl border border-border">
+                  <h3 className="text-[15px] font-bold text-text-dark mb-3 text-center">Common Free Slots</h3>
+                  <div className="space-y-2">
+                    {syncData.freeSlots.map((slot: string, i: number) => (
+                      <div key={i} className="bg-bg-white border border-border rounded-lg p-3 text-center text-[14px] font-semibold text-primary">
+                        {slot}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-border flex justify-between text-[12px] text-text-muted px-2">
+                    <span>You have {syncData.myCount} classes today</span>
+                    <span>Buddy has {syncData.buddyCount} classes today</span>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       )}
