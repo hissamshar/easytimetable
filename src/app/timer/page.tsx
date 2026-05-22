@@ -26,10 +26,47 @@ export default function TimerPage() {
   const startTimeRef = useRef<Date | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Bug 1: Per-mode time persistence ref
+  const modeTimesRef = useRef<Record<SessionMode, number>>({
+    focus: MODES.focus.minutes * 60,
+    short_break: MODES.short_break.minutes * 60,
+    long_break: MODES.long_break.minutes * 60,
+  });
+
+  // Bug 5: Load from localStorage on mount (never restore isRunning)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('easytimetable_timer');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.mode && MODES[parsed.mode as SessionMode]) {
+          setMode(parsed.mode as SessionMode);
+        }
+        if (parsed.modeTimes) {
+          modeTimesRef.current = { ...modeTimesRef.current, ...parsed.modeTimes };
+          const m = (parsed.mode as SessionMode) || 'focus';
+          const t = modeTimesRef.current[m];
+          setTimeLeft(t !== undefined ? t : MODES[m].minutes * 60);
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // Bug 5: Save to localStorage on every tick / mode change
+  useEffect(() => {
+    try {
+      localStorage.setItem('easytimetable_timer', JSON.stringify({
+        mode,
+        modeTimes: modeTimesRef.current,
+        isRunning: false, // always paused for safety
+      }));
+    } catch { /* ignore */ }
+  }, [mode, timeLeft]);
+
   const totalSeconds = MODES[mode].minutes * 60;
   const progress = 1 - timeLeft / totalSeconds;
 
-  // Fetch sessions and stats
+  // Bug 3: Derive completedCount from DB sessions on mount
   const fetchData = useCallback(async () => {
     try {
       const res = await fetch('/api/study-sessions');
@@ -50,29 +87,17 @@ export default function TimerPage() {
     fetchData();
   }, [fetchData]);
 
-  // Timer countdown
-  useEffect(() => {
-    if (isRunning && timeLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(intervalRef.current!);
-            setIsRunning(false);
-            // Timer completed
-            handleComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRunning]);
+  // Bug 1: switchMode saves current mode's time and restores target mode's time
+  const switchMode = useCallback((newMode: SessionMode) => {
+    setMode(newMode);
+    const savedTime = modeTimesRef.current[newMode];
+    setTimeLeft(savedTime !== undefined ? savedTime : MODES[newMode].minutes * 60);
+    setIsRunning(false);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+  }, []);
 
-  const handleComplete = async () => {
+  // Bug 4: handleComplete wrapped in useCallback with proper deps
+  const handleComplete = useCallback(async () => {
     // Play notification sound (browser built-in)
     try {
       const ctx = new AudioContext();
@@ -122,14 +147,30 @@ export default function TimerPage() {
     } else {
       switchMode('focus');
     }
-  };
+  }, [mode, completedCount, selectedCourse, fetchData, switchMode]);
 
-  const switchMode = (newMode: SessionMode) => {
-    setMode(newMode);
-    setTimeLeft(MODES[newMode].minutes * 60);
-    setIsRunning(false);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  };
+  // Timer countdown — depends on handleComplete (bug 4)
+  useEffect(() => {
+    if (isRunning && timeLeft > 0) {
+      intervalRef.current = setInterval(() => {
+        setTimeLeft(prev => {
+          const next = prev - 1;
+          // Bug 1: update per-mode time on every tick
+          modeTimesRef.current[mode] = next;
+          if (next <= 0) {
+            clearInterval(intervalRef.current!);
+            setIsRunning(false);
+            handleComplete();
+            return 0;
+          }
+          return next;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isRunning, mode, handleComplete]);
 
   const toggleTimer = () => {
     if (!isRunning) {
@@ -140,7 +181,9 @@ export default function TimerPage() {
 
   const resetTimer = () => {
     setIsRunning(false);
-    setTimeLeft(MODES[mode].minutes * 60);
+    const defTime = MODES[mode].minutes * 60;
+    modeTimesRef.current[mode] = defTime;
+    setTimeLeft(defTime);
     if (intervalRef.current) clearInterval(intervalRef.current);
   };
 
@@ -267,23 +310,23 @@ export default function TimerPage() {
         </div>
       </div>
 
-      {/* Center — Timer */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center">
+      {/* Center — Timer (Bug 2: responsive centering) */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center min-h-screen md:min-h-0 md:h-full">
         {/* Timer Card */}
         <div className="bg-black/40 backdrop-blur-xl rounded-3xl border border-white/15 p-8 md:p-12 shadow-2xl flex flex-col items-center min-w-[300px]">
-          {/* Progress Ring */}
-          <div className="relative">
-            <svg width="280" height="280" viewBox="0 0 280 280" className="transform -rotate-90">
+          {/* Progress Ring — Bug 2: responsive SVG */}
+          <div className="relative w-[260px] h-[260px] sm:w-[300px] sm:h-[300px]">
+            <svg viewBox="0 0 300 300" className="transform -rotate-90 w-full h-full">
               {/* Background circle */}
               <circle
-                cx="140" cy="140" r={radius}
+                cx="150" cy="150" r={radius}
                 fill="none"
                 stroke="rgba(255,255,255,0.1)"
                 strokeWidth="6"
               />
               {/* Progress circle */}
               <circle
-                cx="140" cy="140" r={radius}
+                cx="150" cy="150" r={radius}
                 fill="none"
                 stroke={MODES[mode].color}
                 strokeWidth="6"
@@ -294,7 +337,7 @@ export default function TimerPage() {
                 style={{ filter: `drop-shadow(0 0 8px ${MODES[mode].color}60)` }}
               />
             </svg>
-            {/* Time Display */}
+            {/* Time Display — Bug 2: absolute inset-0 for centering */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <p className="text-[64px] md:text-[72px] font-bold text-white tabular-nums tracking-tight font-heading leading-none">
                 {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
