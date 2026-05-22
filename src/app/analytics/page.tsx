@@ -1,5 +1,6 @@
 import React from 'react';
 import { cookies } from 'next/headers';
+import Link from 'next/link';
 import pool from '@/lib/db';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -68,6 +69,43 @@ async function getAnalyticsData(studentId: number) {
       [studentId]
     );
 
+    // Bug 6: Total enrolled courses
+    const enrolledRes = await pool.query(
+      `SELECT COUNT(*) as count FROM course_enrollment WHERE student_id = $1`,
+      [studentId]
+    );
+
+    // Bug 9: Weekly stats (last 7 days)
+    const weeklyStatsRes = await pool.query(
+      `SELECT 
+         to_char(created_at, 'Dy') as day_name,
+         EXTRACT(ISODOW FROM created_at) as dow,
+         COALESCE(SUM(duration_minutes), 0) as minutes
+       FROM study_sessions
+       WHERE student_id = $1 
+         AND created_at >= CURRENT_DATE - INTERVAL '6 days'
+         AND session_type = 'focus'
+       GROUP BY to_char(created_at, 'Dy'), EXTRACT(ISODOW FROM created_at)
+       ORDER BY dow ASC`,
+      [studentId]
+    );
+
+    // Recent sessions (last 10)
+    const recentRes = await pool.query(
+      `SELECT 
+         ss.created_at, 
+         ss.session_type, 
+         ss.duration_minutes,
+         c.course_name, 
+         c.course_code
+       FROM study_sessions ss
+       LEFT JOIN courses c ON ss.course_id = c.course_id
+       WHERE ss.student_id = $1
+       ORDER BY ss.created_at DESC
+       LIMIT 10`,
+      [studentId]
+    );
+
     return {
       monthStats: monthStatsRes.rows[0],
       courseStats: courseStatsRes.rows,
@@ -75,6 +113,9 @@ async function getAnalyticsData(studentId: number) {
       deadlinesCount: parseInt(deadlinesRes.rows[0]?.count || '0'),
       goalsCount: parseInt(goalsRes.rows[0]?.count || '0'),
       connectionsCount: parseInt(connectionsRes.rows[0]?.count || '0'),
+      enrolledCount: parseInt(enrolledRes.rows[0]?.count || '0'),
+      weeklyStats: weeklyStatsRes.rows,
+      recentSessions: recentRes.rows,
     };
   } catch (err) {
     console.error('Analytics fetch error:', err);
@@ -134,13 +175,24 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner */}
+      {/* Top Banner — Bug 8: added Start Studying CTA */}
       <div className="bg-gradient-to-r from-[#8b5cf6] via-[#a855f7] to-[#ec4899] rounded-2xl p-6 md:p-8 text-white shadow-md animate-fade-in-up">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-[24px] md:text-[28px] font-bold font-heading">Monthly Overview</h1>
             <p className="text-white/80 text-[14px]">Track your progress and achievements</p>
           </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link 
+              href="/timer" 
+              className="bg-white text-text-dark rounded-lg px-5 py-2 text-[14px] font-bold shadow-lg hover:bg-white/90 transition-colors flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-[18px]">timer</span>
+              Start Studying
+            </Link>
+          </div>
+        </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-6 border-t border-white/20 pt-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5 flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[16px]" aria-hidden="true">schedule</span>
@@ -157,7 +209,7 @@ export default async function AnalyticsPage() {
         </div>
       </div>
 
-      {/* 4-Card Stats */}
+      {/* 4-Card Stats — Bug 6: "X / Y" for courses tracked */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '50ms' }}>
         <DeadlinesCard initialCount={data?.deadlinesCount || 0} />
         <GoalsCard initialCount={data?.goalsCount || 0} />
@@ -167,8 +219,8 @@ export default async function AnalyticsPage() {
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">menu_book</span>
             <h3 className="text-[13px] font-bold text-text-dark">Courses Tracked</h3>
           </div>
-          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.courseStats?.length || 0}</p>
-          <p className="text-[11px] text-text-muted leading-snug">Courses you have studied this month using the timer.</p>
+          <p className="text-[32px] font-bold text-text-dark font-heading leading-none mb-2">{data?.courseStats?.length || 0} <span className="text-[16px] text-text-muted font-normal">/ {data?.enrolledCount || 0}</span></p>
+          <p className="text-[11px] text-text-muted leading-snug">Courses studied via timer this month vs total enrolled.</p>
         </Card>
 
         <ConnectionsCard initialCount={data?.connectionsCount || 0} />
@@ -301,6 +353,94 @@ export default async function AnalyticsPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Bug 9: Weekly Trend + Recent Sessions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+        {/* Weekly Trend Bar Chart */}
+        <Card className="flex flex-col h-full">
+          <div className="mb-6">
+            <h2 className="text-[16px] font-bold text-text-dark font-heading">This Week</h2>
+            <p className="text-[12px] text-text-muted">Focus minutes over the last 7 days</p>
+          </div>
+          <div className="flex-1 flex items-end gap-2 h-[200px] mt-4">
+            {!data?.weeklyStats || data.weeklyStats.length === 0 ? (
+              <div className="w-full h-full flex items-center justify-center text-[13px] text-text-muted">No sessions this week.</div>
+            ) : (
+              (() => {
+                const maxMins = Math.max(...data.weeklyStats.map((d: any) => parseFloat(d.minutes)), 60);
+                const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                const statsMap = data.weeklyStats.reduce((acc: any, curr: any) => {
+                  const dayName = curr.day_name.substring(0, 3);
+                  acc[dayName] = parseFloat(curr.minutes);
+                  return acc;
+                }, {});
+                
+                return days.map(day => {
+                  const mins = statsMap[day] || 0;
+                  const heightPerc = Math.max((mins / maxMins) * 100, 2);
+                  return (
+                    <div key={day} className="flex-1 flex flex-col items-center justify-end h-full group">
+                      <div className="w-full relative flex items-end justify-center h-full">
+                        <div className="absolute bottom-full mb-2 hidden group-hover:block z-10 w-max bg-gray-900 text-white text-[10px] py-1 px-2 rounded whitespace-nowrap shadow-xl">
+                          {mins} mins
+                        </div>
+                        <div 
+                          className="w-full bg-primary/80 rounded-t-sm transition-all duration-300 group-hover:bg-primary"
+                          style={{ height: `${heightPerc}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-text-muted mt-2 font-medium">{day}</span>
+                    </div>
+                  );
+                });
+              })()
+            )}
+          </div>
+        </Card>
+
+        {/* Recent Sessions Table */}
+        <Card className="flex flex-col h-full">
+          <div className="mb-4 flex justify-between items-center">
+            <div>
+              <h2 className="text-[16px] font-bold text-text-dark font-heading">Recent Sessions</h2>
+              <p className="text-[12px] text-text-muted">Your last 10 study sessions</p>
+            </div>
+            <Link href="/timer" className="text-[12px] text-primary hover:underline font-semibold">
+              Go to Timer
+            </Link>
+          </div>
+          <div className="flex-1 overflow-y-auto pr-1">
+            {!data?.recentSessions || data.recentSessions.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-[13px] text-text-muted py-8">No recent sessions found.</div>
+            ) : (
+              <div className="space-y-3">
+                {data.recentSessions.map((session: any, i: number) => {
+                  const isFocus = session.session_type === 'focus';
+                  const dateObj = new Date(session.created_at);
+                  const dateStr = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' }).format(dateObj);
+                  return (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border bg-bg-slate/50">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isFocus ? 'bg-primary/10 text-primary' : 'bg-green-500/10 text-green-600'}`}>
+                          <span className="material-symbols-outlined text-[16px]">{isFocus ? 'target' : 'coffee'}</span>
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-bold text-text-dark leading-tight">{session.course_code || (isFocus ? 'Focus Session' : 'Break')}</p>
+                          <p className="text-[11px] text-text-muted">{dateStr}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[14px] font-bold text-text-dark">{session.duration_minutes}m</p>
+                        <p className="text-[10px] text-text-muted uppercase font-semibold">{isFocus ? 'Study' : 'Rest'}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </Card>
       </div>
