@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 type SessionMode = 'focus' | 'short_break' | 'long_break';
@@ -21,6 +22,9 @@ export default function TimerPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [completedCount, setCompletedCount] = useState(0);
+  const router = useRouter();
+  const timeLeftRef = useRef(timeLeft);
+  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<Date | null>(null);
@@ -75,6 +79,37 @@ export default function TimerPage() {
     } catch { /* ignore */ }
   }, [mode, timeLeft]);
 
+  
+  const savePartialSession = useCallback(() => {
+    const currentState = stateRef.current;
+    const currentLeft = timeLeftRef.current;
+    const total = MODES[currentState.mode].minutes * 60;
+    const elapsed = total - currentLeft;
+    const elapsedMinutes = Math.ceil(elapsed / 60);
+    
+    if (elapsedMinutes > 0) {
+      fetch('/api/study-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_type: currentState.mode,
+          duration_minutes: elapsedMinutes,
+          course_id: currentState.selectedCourse?.course_id || null,
+        }),
+        keepalive: true
+      }).catch(() => {});
+      timeLeftRef.current = total; // prevent double save
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => savePartialSession();
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [savePartialSession]);
+
   const totalSeconds = MODES[mode].minutes * 60;
   const progress = 1 - timeLeft / totalSeconds;
 
@@ -93,7 +128,12 @@ export default function TimerPage() {
   useEffect(() => {
     fetch('/api/students?roll=self')
       .then(r => r.json())
-      .then(d => { if (d.courses) setCourses(d.courses); })
+      .then(d => { if (d.courses) {
+          setCourses(d.courses);
+          if (d.courses.length > 0 && !selectedCourse) {
+            setShowCourseModal(true);
+          }
+        } })
       .catch(() => {});
     fetchData();
   }, [fetchData]);
@@ -193,6 +233,10 @@ export default function TimerPage() {
   }, [isRunning, handleComplete, timeLeft]);
 
   const toggleTimer = () => {
+    if (!isRunning && mode === 'focus' && !selectedCourse && courses.length > 0) {
+      setShowCourseModal(true);
+      return;
+    }
     if (!isRunning) {
       startTimeRef.current = new Date();
     }
@@ -439,13 +483,13 @@ export default function TimerPage() {
         </div>
 
         {/* Back button */}
-        <Link
-          href="/"
-          className="mt-6 flex items-center gap-1.5 text-white/60 hover:text-white text-[13px] font-medium transition-colors"
+        <button
+          onClick={() => { savePartialSession(); router.push('/'); }}
+          className="mt-6 flex items-center gap-1.5 text-white/60 hover:text-white text-[13px] font-medium transition-colors cursor-pointer"
         >
           <span className="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_back</span>
           Back to Dashboard
-        </Link>
+        </button>
       </div>
 
       {/* Mobile bottom stats */}
@@ -490,12 +534,7 @@ export default function TimerPage() {
             {courses.length === 0 ? (
               <div className="bg-orange-light/50 border border-orange/20 rounded-xl p-4 flex items-center gap-3">
                 <p className="text-[13px] text-text-slate flex-1">No courses found for your profile.</p>
-                <button
-                  onClick={() => setShowCourseModal(false)}
-                  className="px-4 py-2 rounded-lg border border-border text-[13px] font-semibold text-text-dark hover:bg-bg-slate transition-colors whitespace-nowrap"
-                >
-                  Start without course
-                </button>
+                
               </div>
             ) : (
               <div className="space-y-2 max-h-[300px] overflow-y-auto">

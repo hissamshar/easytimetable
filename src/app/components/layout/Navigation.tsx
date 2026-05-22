@@ -27,7 +27,6 @@ export function Sidebar() {
 
   const navItems = [
     { href: '/', icon: 'dashboard', label: 'Dashboard' },
-    { href: '/timer', icon: 'timer', label: 'Study Timer' },
     { href: '/timetable', icon: 'calendar_view_week', label: 'Timetable' },
     { href: '/exams', icon: 'assignment', label: 'Exams' },
     { href: '/calendar', icon: 'event', label: 'Calendar' },
@@ -199,7 +198,6 @@ export function BottomNav() {
 
   const navItems = [
     { href: '/', icon: 'dashboard', label: 'Home' },
-    { href: '/timer', icon: 'timer', label: 'Timer' },
     { href: '/timetable', icon: 'calendar_view_week', label: 'Schedule' },
     { href: '/exams', icon: 'assignment', label: 'Exams' },
     { href: '/analytics', icon: 'monitoring', label: 'Stats' },
