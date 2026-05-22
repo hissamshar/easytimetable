@@ -24,8 +24,33 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteLoading, setInviteLoading] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // In a real app, you would search for a student by roll number and get their ID.
+  // For this prototype, we'll just mock adding a connection.
+  async function handleInvite(e: React.FormEvent) {
+    e.preventDefault();
+    setInviteLoading(true);
+    try {
+      // Hardcode connecting with student ID 2 as an example for the prototype
+      const res = await fetch('/api/connections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiver_id: 2 })
+      });
+      if (res.ok) {
+        setIsInviteModalOpen(false);
+        // Force a reload so the parent server component gets the new connection
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setInviteLoading(false);
+  }
 
   // Fetch messages when buddy changes
   useEffect(() => {
@@ -89,8 +114,15 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
     <div className="flex w-full h-full">
       {/* Sidebar */}
       <div className="w-1/3 min-w-[250px] border-r border-border bg-bg-slate flex flex-col h-full overflow-y-auto">
-        <div className="p-4 border-b border-border">
+        <div className="p-4 border-b border-border flex justify-between items-center">
           <h2 className="text-[14px] font-bold text-text-dark">Your Buddies</h2>
+          <button 
+            onClick={() => setIsInviteModalOpen(true)}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo/10 text-indigo hover:bg-indigo/20 transition-colors"
+            title="Add Buddy"
+          >
+            <span className="material-symbols-outlined text-[18px]">person_add</span>
+          </button>
         </div>
         <div className="flex-1">
           {connections.length === 0 ? (
@@ -217,6 +249,37 @@ export default function BuddiesHub({ connections, currentUserId }: { connections
           </div>
         )}
       </div>
+
+      {isInviteModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsInviteModalOpen(false)}>
+          <div className="bg-bg-white rounded-2xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-[18px] font-bold font-heading text-text-dark">Find Study Buddy</h2>
+              <button onClick={() => setIsInviteModalOpen(false)} className="text-text-muted hover:text-text-dark">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleInvite} className="space-y-4">
+              <div>
+                <label className="block text-[13px] font-medium text-text-dark mb-1">Friend's Roll Number</label>
+                <input 
+                  type="text" 
+                  required
+                  className="w-full bg-bg-slate border border-border rounded-xl px-4 py-2 text-[14px] text-text-primary focus:outline-none focus:border-primary"
+                  placeholder="e.g., 21L-1234"
+                />
+              </div>
+              <button 
+                type="submit" 
+                disabled={inviteLoading}
+                className="w-full bg-indigo text-white rounded-xl py-2.5 font-semibold text-[14px] hover:bg-indigo/90 transition-colors disabled:opacity-50"
+              >
+                {inviteLoading ? 'Sending Request...' : 'Send Request'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
