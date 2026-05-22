@@ -33,6 +33,7 @@ export function Sidebar() {
     { href: '/calendar', icon: 'event', label: 'Calendar' },
     { href: '/updates', icon: 'campaign', label: 'Updates' },
     { href: '/analytics', icon: 'monitoring', label: 'Analytics' },
+    { href: '/buddies', icon: 'group', label: 'Study Buddies' },
   ];
 
   const initials = user?.name
