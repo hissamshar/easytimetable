@@ -10,24 +10,3 @@ export async function GET() {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { title, content, type } = body;
-
-    if (!title || !content || !type) {
-      return NextResponse.json({ error: 'Title, content, and type are required' }, { status: 400 });
-    }
-
-    const res = await pool.query(
-      'INSERT INTO live_updates (title, message, category) VALUES ($1, $2, $3) RETURNING *',
-      [title, content, type]
-    );
-
-    return NextResponse.json({ update: res.rows[0] }, { status: 201 });
-  } catch (error) {
-    console.error('Database error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
