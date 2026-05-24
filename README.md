@@ -236,7 +236,3 @@ python main.py --dry-run
 | `pipeline_log` | Worker deduplication log (tracks processed emails) |
 
 ---
-
-## 📄 License
-
-This project is developed for academic purposes as part of a university DBMS course — Fast NUCES, Islamabad.
